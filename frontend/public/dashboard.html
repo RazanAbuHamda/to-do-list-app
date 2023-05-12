@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+    <title>Material Design for Bootstrap</title>
+    <!-- MDB icon -->
+    <link rel="icon" href="img/mdb-favicon.ico" type="image/x-icon"/>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"/>
+    <!-- Google Fonts Roboto -->
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap"/>
+    <!-- MDB -->
+    <link rel="stylesheet" href="css/bootstrap-to-do-list.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+</head>
+
+<body>
+<!-- Start your project here-->
+<style>
+    #list1 .form-control {
+        border-color: transparent;
+    }
+
+    #list1 .form-control:focus {
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    #list1 .select-input.form-control[readonly]:not([disabled]) {
+        background-color: #fbfbfb;
+    }
+
+    .task-done {
+        background-color: #98fb98 !important;
+    }
+    .subtask-done{
+        background-color: #98fb98 !important;
+    }
+
+    .task-cancel {
+        background-color: #fe3939 !important;
+    }
+
+</style>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- jQuery UI -->
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<section class="vh-100">
+    <div class="container py-5 h-100" id="to-do-list">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col">
+                <div class="card" id="list1" style="border-radius: .75rem; background-color: #eff1f2;">
+                    <div class="card-body py-4 px-4 px-md-5">
+
+                        <p class="h1 text-center mt-3 mb-4 pb-3 text-primary">
+                            <i class="fas fa-check-square me-1"></i>
+                            <u>My Todo-s</u>
+                        </p>
+
+                        <div class="pb-2">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex flex-row align-items-center">
+                                        <input type="text" class="form-control form-control-lg"
+                                               id="exampleFormControlInput1" placeholder="Add new..."
+                                               v-model="taskText">
+                                        <a href="#!" data-mdb-toggle="tooltip" title="Set due date"><i
+                                                class="fas fa-calendar-alt fa-lg me-3"></i></a>
+                                        <div>
+                                            <button type="button" class="btn btn-primary" :disabled="!taskText" @click.prevent="addTask">
+                                                Add
+                                            </button>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p>Completion percentage: {{ completionPercentage }}%</p>
+                        <p>Completion in current day percentage: {{ completionInCurrentDayPercentage }}%</p>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-end align-items-center mb-4 pt-2 pb-3">                        
+                            <p class="small mb-0 me-2 text-muted">Check the Tasks Completed Per Day</p>
+                            <a href="perDay.html" class="text-success me-4 mb-0" data-mdb-toggle="tooltip" title="CheckTasks">
+                                <i class="fas fa-chart-pie"></i>
+                            </a>
+                            <p class="small ml-2 mb-0 me-2 text-muted">Filter</p>
+                            <select class="select" v-model="selectedFilter" @change="updateTasks">
+                                <option></option>
+                                <option value="1">All</option>
+                                <option value="2">Completed</option>
+                                <option value="3">Active</option>
+                                <option value="4">Cancelled</option>                                
+                            </select>
+                            <p class="small mb-0 ms-4 me-2 text-muted">Sort</p>
+                            <select class="select" v-model="selectedSorting" @change="sortTasks">
+                                <option></option>
+                                <option value="1">Added date</option>
+                                <option value="2">Completion Date</option>
+                            </select>
+                            <a href="#!" style="color: #23af89;" data-mdb-toggle="tooltip" title="Ascending"><i
+                                    class="fas fa-sort-amount-down-alt ms-2"></i></a>
+                        </div>
+                        <div id="sortable-list">
+                            <div class="item" v-for="(task,index) in filterTasks" >
+                                <ul class="list-group list-group-horizontal rounded-0 bg-transparent "
+                                    v-bind:class="[{'task-done': task.done}, {'task-cancel': task.cancel}]" >
+                                    
+                                    <li class="list-group-item d-flex align-items-center ps-0 pe-3 py-1 rounded-0 border-0 bg-transparent">
+                                        <div class="form-check">
+                                            <input
+                                                    class="form-check-input me-0"
+                                                    type="checkbox"
+                                                    value=""
+                                                    id="flexCheckChecked1"
+                                                    aria-label="..."
+                                                    v-model="task.done"
+                                                    v-bind:id="task.id"
+                                                    v-on:input="checkCompletedTask(index)"
+                                            />
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item px-3 py-1 d-flex align-items-center flex-grow-1 border-0 bg-transparent"
+                                        v-bind:style="{ 'background-color': task.done ? completedColor : '' }">
+                                        <p class="lead fw-normal mb-0" v-if="!task.editMode">{{ task.words }}</p>
+                                        <div v-else class="d-flex flex-row justify-content-end mb-1">
+                                            <input class="form-control form-control-lg" v-model="task.newValue"
+                                                :placeholder= "task.words" />
+                                            <button type="button" class="btn btn-primary" id="save-edited-task" style="margin: left 10px;"
+                                            :disabled="!task.newValue" @click="saveEditedTask(index)"  >Save
+                                            </button>
+
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item ps-3 pe-0 py-1 rounded-0 border-0 bg-transparent">
+                                        <div class="d-flex flex-row justify-content-end mb-2">
+                                            <a href="#!" class="text-info" data-mdb-toggle="tooltip" 
+                                                title="Edit todo"
+                                                @click="editTask(index)">
+                                                <i class="fas fa-pencil-alt me-3"></i>
+                                            </a>
+                                            <a href="#!" class="text-danger" data-mdb-toggle="tooltip"
+                                            title="Delete todo" 
+                                            @click.stop="deleteTask(index)">
+                                            <i class="fas fa-trash-alt me-3"></i>
+                                            </a>                                                                                                                               
+                                        </div>
+                                        <div class="text-end text-muted">
+                                            <a href="#!" class="text-muted" data-mdb-toggle="tooltip" title="Created date">
+                                                <p class="small mb-0"><i class="fas fa-info-circle me-2"></i>{{ task.date.toJSON().slice(0, 10).replace(/-/g, '/') }}
+                                                </p>
+                                            </a>
+                                        </div>
+                                    </li>                            
+                                </ul> 
+                                
+                                <div style="margin-left: 50px;">
+                                    <div class="ml-3">
+                                        <input 
+                                            type="text"                                       
+                                            style="height: 40px; width: 300px; border: none; border-radius: 4px; margin-right: 10px;" 
+                                            v-model="task.subTaskTxt" 
+                                            v-bind="task.subTaskTxt"                                       
+                                        />                                    
+                                        <button type="button" style="height: 35px;" class="btn btn-info h-25" :disabled="!task.subTaskTxt" @click.prevent="addSubtask(index)">
+                                            Add a Subtask
+                                        </button>
+                                    </div>
+                                    <!-- subtasks -->
+                                    <div id="subtask-sortable-list">
+                                        <div class="subtask-sortable-list-item" v-for="(subTask,subIndex) in task.subTasks" >                                
+                                            <ul class="list-group list-group-horizontal" 
+                                                v-bind:class="
+                                                        [{'task-done': task.done}, 
+                                                        {'subtask-done': task.subTasks[subIndex].subTaskDone},
+                                                        {'task-cancel': task.subTasks[subIndex].subTaskCancel}]" >
+                                            
+                                                <li class="list-group-item d-flex align-items-center ml-1 ps-0 pe-3 py-1 rounded-0 border-0 bg-transparent">
+                                                    <div class="form-check ml-1">
+                                                        <input
+                                                                class="form-check-input ml-2"
+                                                                type="checkbox"
+                                                                value=""
+                                                                id="flexCheckChecked2"
+                                                                aria-label="..."
+                                                                v-model="task.subTasks[subIndex].subTaskDone"
+                                                                v-bind:id="task.subTasks[subIndex].id"
+                                                                v-on:input="checkCompletedSubTask(index, subIndex)"
+                                                        />
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item d-flex align-items-center flex-grow-1 border-0 bg-transparent"
+                                                    v-bind:style="{ 'background-color': task.subTasks[subIndex].subTaskDone ? completedColor : '' }">
+                                                    <p class="lead fw-normal mb-0" v-if="!task.subTasks[subIndex].subTaskEditMode">{{ task.subTasks[subIndex].txt }}</p>
+                                                    <div v-else >
+                                                        <input 
+                                                            type="text"                                       
+                                                            style="height: 40px; width: 300px; border: none; border-radius: 4px; margin-right: 10px;" 
+                                                            v-model="task.subTasks[subIndex].subTaskEditedValue" 
+                                                            :placeholder="task.subTasks[subIndex].txt"                                                     
+                                                        />   
+                                                        <button type="button" class="btn btn-primary" id="save-edited-subtask" 
+                                                                @click="saveEditedSubtask(index, subIndex)" >Save
+                                                        </button>
+                                                    </div>
+                                                </li>                             
+                                                <li class="list-group-item ps-3 pe-0 py-1 rounded-0 border-0 bg-transparent">
+                                                    <div class="d-flex flex-row justify-content-end mb-2">
+                                                        <a href="#!" class="text-info" data-mdb-toggle="tooltip" 
+                                                            title="Edit todo"
+                                                            @click="editSubtask(index, subIndex)">
+                                                            <i class="fas fa-pencil-alt me-3"></i>
+                                                        </a>
+                                                        <a href="#!" class="text-danger" data-mdb-toggle="tooltip"
+                                                        title="Delete todo" 
+                                                        @click.stop="deleteSubtask(index, subIndex)">
+                                                        <i class="fas fa-trash-alt me-3"></i>
+                                                        </a>
+                                                    </div>
+                                                    <div class="text-end text-muted">
+                                                        <a href="#!" class="text-muted" data-mdb-toggle="tooltip" title="Created date">
+                                                            <p class="small mb-0"><i class="fas fa-info-circle me-2"></i>{{ task.subTasks[subIndex].date }}
+                                                            </p>
+                                                        </a>
+                                                    </div>
+                                                </li>                            
+                                            </ul>                                 
+                                        </div> 
+                                    </div>
+                                    <hr> 
+                                </div>                        
+                            </div>                                                   
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End your project here-->
+
+<!-- MDB -->
+<script type="text/javascript" src="js/mdb.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+
+<script>
+    $( function() {
+ 
+      $( "#sortable-list" ).sortable({
+            items:".item, .subtask-sortable-list-item ",
+                      
+        }).disableSelection();
+
+    });         
+
+
+</script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el: "#to-do-list",
+        data: {
+            tasks: [],
+            choosenArray: [],
+            selectedFilter: '', //default filter is none
+            selectedSorting: '', // default sorting is none
+            completedTasks: [],
+            canceledTasks: [],
+            taskText: '',
+            num: 1,
+            editMode: false,
+            done: false,
+            cancel: false,
+            percentageNum: 0,
+            subTaskId:1,
+            subTaskDone: false,
+            subTaskCancel: false,
+            subtaskInput:0
+
+        },
+        methods: {
+            addTask: function () {
+                this.tasks.push({
+                    id: this.num,
+                    words: this.taskText,
+                    done: this.done,
+                    newValue: '',
+                    cancel: this.cancel,
+                    date: new Date(),
+                    editMode: this.editMode,
+                    reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
+                    subTasks: [],
+                    subTaskTxt:'',
+                    completionDate:0
+                });
+                this.taskText = '';
+                this.num++;
+            },
+            deleteTask: function (index) {
+                this.tasks.splice(index, 1);
+            },
+            deleteSubtask: function (parentIndex, childIndex) {
+                this.tasks[parentIndex].subTasks.splice(childIndex, 1);
+            },
+            editTask: function (index) {
+                this.tasks[index].editMode = true;
+            },
+            editSubtask: function (parentIndex, childIndex) {
+                this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = true;
+            },
+            saveEditedSubtask: function(parentIndex, childIndex){
+                this.tasks[parentIndex].subTasks[childIndex].txt  = this.tasks[parentIndex].subTasks[childIndex].subTaskEditedValue;
+                this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = false;
+            },
+            saveEditedTask(index) {
+                this.tasks[index].words = this.tasks[index].newValue;
+                this.tasks[index].editMode = false;
+            },
+            checkCompletedTask(index) {
+                isChecked = !this.tasks[index].done;
+                if (isChecked) {
+                    this.tasks[index].completionDate = new Date();
+                    this.completedTasks.push(this.tasks[index], this.task[index].subTasks);
+                } else {
+                    this.completedTasks.splice(this.tasks[index], 1);
+                }
+            },
+            checkCompletedSubTask(parentIndex, childIndex) {
+                isChecked = !this.tasks[parentIndex].subTasks[childIndex].done;
+                if (isChecked) {
+                    this.completedTasks.push(this.tasks[parentIndex].subTasks[childIndex])
+                } else {
+                    this.completedTasks.splice(this.tasks[parentIndex].subTasks[childIndex], 1)
+
+                }
+            },
+            updateTasks() {
+                this.tasks = this.filteredTasks();
+            },
+            sortTasks(){
+                this.tasks = this.filteredTasks();
+            },
+            addSubtask: function (index) {
+                this.tasks[index].subTasks.push({
+                    parentId: index,
+                    id: this.subTaskId,
+                    txt: this.tasks[index].subTaskTxt,
+                    date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
+                    done: this.subTaskDone,
+                    cancel: this.subTaskCancel,
+                    subTaskEditMode: false,
+                    subTaskEditedValue: '',
+
+            });
+                this.tasks[index].subTaskTxt = '',
+                this.subTaskId++;
+            },
+            sortAccordingToAddedDate(){        
+                
+                return this.tasks.sort( 
+                    (taskA, taskB) => Number(taskA.date) - Number(taskB.date),
+                );            
+            },
+            sortAccordingToCompletedDate(){                
+
+                return this.completedTasks.sort( 
+                    (taskA, taskB) => Number(taskA.completionDate) - Number(taskB.completionDate),
+                );
+            },
+        },
+        computed: {
+            filterTasks: function () {
+                if(this.selectedFilter !== ''){
+                    switch (this.selectedFilter) {
+                        case "1":
+                            return this.tasks;
+                        case "2":
+                            return this.completedTasks;
+                        case "3":
+                            return this.tasks.filter(task => !task.done);
+                        case "4":
+                            return this.canceledTasks;
+                        default:
+                            return this.tasks;
+                    }
+                }else{
+                    switch (this.selectedSorting) {
+                        case "1":
+                            return this.sortAccordingToAddedDate();
+                        case "2":
+                            return this.sortAccordingToCompletedDate();
+                        default:
+                            return this.tasks;
+                    }
+                }
+                
+            },
+            completionPercentage() {
+                var totalTasks = this.tasks.length;
+                var totalSubtasks = this.tasks.reduce((acc, task) => acc + task.subTasks.length, 0);
+                var completedTasks = 0;
+                var completedSubtasks = 0;
+
+                for (let i = 0; i < this.tasks.length; i++) { 
+                    if (this.tasks[i].done) {
+                        completedTasks++;
+                        completedSubtasks += this.tasks[i].subTasks.length;
+                    }else{
+                        for (let n = 0; n < this.tasks[i].subTasks.length; n++) {
+                            if (this.tasks[i].subTasks[n].subTaskDone) {
+                                completedSubtasks++;
+                            }
+                        }   
+                    }                 
+                }
+                var total = totalTasks + totalSubtasks;
+                var completed = completedTasks + completedSubtasks;
+
+                if (total === 0) {
+                    return 0;
+                } else {
+                    return Math.round((completed / total) * 100);
+                }
+            },
+            completionInCurrentDayPercentage() {
+                const today = new Date();
+                let totalTasksInDay = 0;
+                let totalSubtasksInDay = 0;
+                let completedTasks = 0;
+                let completedSubtasks = 0;
+
+                for (let i = 0; i < this.tasks.length; i++) {
+                    const taskDate = new Date(this.tasks[i].date);
+                    if (taskDate.getDate() === today.getDate() && taskDate.getMonth() === today.getMonth() && taskDate.getFullYear() === today.getFullYear()) {
+                        totalTasksInDay++;
+                        totalSubtasksInDay = this.tasks.reduce((acc, task) => acc + task.subTasks.length, 0);
+
+                        if (this.tasks[i].done) {
+                            completedTasks++;
+                            completedSubtasks += this.tasks[i].subTasks.length;
+                        }else{
+                            for (let n = 0; n < this.tasks[i].subTasks.length; n++) {
+                                // const subTaskDate = new Date(this.tasks[i].subTasks[n].date);
+                            // if (taskDate.getDate() === today.getDate() && taskDate.getMonth() === today.getMonth() && taskDate.getFullYear() === today.getFullYear()) {
+                            //     totalSubtasksInDay++;
+                                if (this.tasks[i].subTasks[n].subTaskDone) {
+                                    completedSubtasks++;
+                                }
+                            // }
+
+                            }  
+                        }
+                    }                                      
+                }                
+                console.log("completedSubtasks",completedSubtasks);
+                console.log("completedTasks",completedTasks);
+                console.log("totalTasksInDay",totalTasksInDay);
+                console.log("totalSubtasksInDay",totalSubtasksInDay);
+                
+                if (totalTasksInDay === 0) {
+                    return 0;
+                }
+                totalCompleted = completedTasks + completedSubtasks;
+                total = totalSubtasksInDay + totalTasksInDay;
+                return Math.round((totalCompleted / total) * 100);
+            }
+            ,
+            isPastDue: function () {
+                for (let i = 0; i < this.tasks.length; i++) {
+                    if (!this.tasks[i].done && this.tasks[i].reminder - this.tasks[i].date) {
+                        this.tasks[i].cancel = !this.tasks[i].cancel;
+                        this.canceledTasks.push(this.tasks[i]);
+                    } else {
+                        this.canceledTasks.splice(this.tasks[i], 1);
+                    }
+                }
+            },
+
+        },
+        mounted() {
+            //هاي عملتها عشان كل دقيقة تستدعي الميثود الي بتفحص هل مر يوم كامل على المهمة عشان ألغيها ؟
+            setInterval(this.isPastDue, 60000); // call getCurrentTime every minute
+            $('.task-list').sortable();
+
+        },        
+    })
+
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+    <title>Material Design for Bootstrap</title>
+    <!-- MDB icon -->
+    <link rel="icon" href="img/mdb-favicon.ico" type="image/x-icon"/>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"/>
+    <!-- Google Fonts Roboto -->
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap"/>
+    <!-- MDB -->
+    <link rel="stylesheet" href="css/bootstrap-to-do-list.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script></script>
+
+</head>
+
+<body>
+<!-- Start your project here-->
+<style>
+    .gradient-custom {
+        /* fallback for old browsers */
+        background: #1266F1;
+
+        }
+
+
+</style>
+
+<section class="gradient-custom">
+    <div class="container py-5 h-100" id="login">
+      <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+          <div class="card">
+            <div class="card-body p-5 text-center">
+  
+              <div class="mb-md-5 mt-md-4 pb-5">
+                
+                <h2 class="fw-bold mb-2 text-uppercase">Login</h2>
+                <p class="text-black-50 mb-5">Please enter your login and password!</p>
+
+                <form @submit="validateUser" method="post">
+                    <div class="form-outline form-dark mb-4">
+                        <input 
+                            type="email" 
+                            id="email" 
+                            v-model="email"
+                            class="form-control form-control-lg" 
+                        />
+                        <label class="form-label" for="typeEmailX">Email</label>
+                    </div>
+    
+                    <div class="form-outline form-dark mb-4">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            v-model="password"
+                            class="form-control form-control-lg"
+                        />
+                        <label class="form-label" for="typePasswordX">Password</label>
+                    </div>
+
+                    
+                    <button type="submit" class="btn btn-outline-dark btn-lg px-5">Login</button>
+                    <br><br>
+                </form>                             
+  
+              <div>
+                <p class="mt-0">Don't have an account? <a href="signup.html" class="text-dark-50 fw-bold">Sign Up</a>
+                </p>
+              </div>   
+              
+            </div>    
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+<!-- End your project here-->
+
+<!-- MDB -->
+<script type="text/javascript" src="js/mdb.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+    var vue = new Vue({
+      el: "#login",
+      data(){
+        return{
+          
+            email : null,
+            password : null
+          
+        }
+      },
+      methods:{
+        validateUser(e){
+          try{
+            console.warn(this.data);
+            axios.post("http://localhost:3000/api/user/login/", {
+              email:this.email, 
+              password:this.password
+            })
+            .then((result) => {
+              console.log(result.data);
+              window.location.href = 'http://localhost:8080/dashboard.html';
+            })
+            .catch(error => {
+              console.log(error);
+            })
+            e.preventDefault();
+          }catch(e){
+            console.log(e);
+          }
+        },   
+      } 
+  
+    })
+  </script>
+  
+
+</body>
+</html>
