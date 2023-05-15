@@ -78,7 +78,7 @@
                                             <button type="button" class="btn btn-primary" :disabled="!taskText" @click.prevent="addTask">
                                                 Add
                                             </button>
-                                            
+
                                         </div>
                                     </div>
                                 </div>
@@ -89,7 +89,7 @@
 
                         <hr class="my-4">
 
-                        <div class="d-flex justify-content-end align-items-center mb-4 pt-2 pb-3">                        
+                        <div class="d-flex justify-content-end align-items-center mb-4 pt-2 pb-3">
                             <p class="small mb-0 me-2 text-muted">Check the Tasks Completed Per Day</p>
                             <a href="perDay.html" class="text-success me-4 mb-0" data-mdb-toggle="tooltip" title="CheckTasks">
                                 <i class="fas fa-chart-pie"></i>
@@ -100,7 +100,7 @@
                                 <option value="1">All</option>
                                 <option value="2">Completed</option>
                                 <option value="3">Active</option>
-                                <option value="4">Cancelled</option>                                
+                                <option value="4">Cancelled</option>
                             </select>
                             <p class="small mb-0 ms-4 me-2 text-muted">Sort</p>
                             <select class="select" v-model="selectedSorting" @change="sortTasks">
@@ -115,7 +115,7 @@
                             <div class="item" v-for="(task,index) in filterTasks" >
                                 <ul class="list-group list-group-horizontal rounded-0 bg-transparent "
                                     v-bind:class="[{'task-done': task.done}, {'task-cancel': task.cancel}]" >
-                                    
+
                                     <li class="list-group-item d-flex align-items-center ps-0 pe-3 py-1 rounded-0 border-0 bg-transparent">
                                         <div class="form-check">
                                             <input
@@ -144,16 +144,16 @@
                                     </li>
                                     <li class="list-group-item ps-3 pe-0 py-1 rounded-0 border-0 bg-transparent">
                                         <div class="d-flex flex-row justify-content-end mb-2">
-                                            <a href="#!" class="text-info" data-mdb-toggle="tooltip" 
+                                            <a href="#!" class="text-info" data-mdb-toggle="tooltip"
                                                 title="Edit todo"
                                                 @click="editTask(index)">
                                                 <i class="fas fa-pencil-alt me-3"></i>
                                             </a>
                                             <a href="#!" class="text-danger" data-mdb-toggle="tooltip"
-                                            title="Delete todo" 
+                                            title="Delete todo"
                                             @click.stop="deleteTask(index)">
                                             <i class="fas fa-trash-alt me-3"></i>
-                                            </a>                                                                                                                               
+                                            </a>
                                         </div>
                                         <div class="text-end text-muted">
                                             <a href="#!" class="text-muted" data-mdb-toggle="tooltip" title="Created date">
@@ -161,30 +161,30 @@
                                                 </p>
                                             </a>
                                         </div>
-                                    </li>                            
-                                </ul> 
-                                
+                                    </li>
+                                </ul>
+
                                 <div style="margin-left: 50px;">
                                     <div class="ml-3">
-                                        <input 
-                                            type="text"                                       
-                                            style="height: 40px; width: 300px; border: none; border-radius: 4px; margin-right: 10px;" 
-                                            v-model="task.subTaskTxt" 
-                                            v-bind="task.subTaskTxt"                                       
-                                        />                                    
+                                        <input
+                                            type="text"
+                                            style="height: 40px; width: 300px; border: none; border-radius: 4px; margin-right: 10px;"
+                                            v-model="task.subTaskTxt"
+                                            v-bind="task.subTaskTxt"
+                                        />
                                         <button type="button" style="height: 35px;" class="btn btn-info h-25" :disabled="!task.subTaskTxt" @click.prevent="addSubtask(index)">
                                             Add a Subtask
                                         </button>
                                     </div>
                                     <!-- subtasks -->
                                     <div id="subtask-sortable-list">
-                                        <div class="subtask-sortable-list-item" v-for="(subTask,subIndex) in task.subTasks" >                                
-                                            <ul class="list-group list-group-horizontal" 
+                                        <div class="subtask-sortable-list-item" v-for="(subTask,subIndex) in task.subTasks" >
+                                            <ul class="list-group list-group-horizontal"
                                                 v-bind:class="
                                                         [{'task-done': task.done}, 
                                                         {'subtask-done': task.subTasks[subIndex].subTaskDone},
                                                         {'task-cancel': task.subTasks[subIndex].subTaskCancel}]" >
-                                            
+
                                                 <li class="list-group-item d-flex align-items-center ml-1 ps-0 pe-3 py-1 rounded-0 border-0 bg-transparent">
                                                     <div class="form-check ml-1">
                                                         <input
@@ -203,26 +203,26 @@
                                                     v-bind:style="{ 'background-color': task.subTasks[subIndex].subTaskDone ? completedColor : '' }">
                                                     <p class="lead fw-normal mb-0" v-if="!task.subTasks[subIndex].subTaskEditMode">{{ task.subTasks[subIndex].txt }}</p>
                                                     <div v-else >
-                                                        <input 
-                                                            type="text"                                       
-                                                            style="height: 40px; width: 300px; border: none; border-radius: 4px; margin-right: 10px;" 
-                                                            v-model="task.subTasks[subIndex].subTaskEditedValue" 
-                                                            :placeholder="task.subTasks[subIndex].txt"                                                     
-                                                        />   
-                                                        <button type="button" class="btn btn-primary" id="save-edited-subtask" 
+                                                        <input
+                                                            type="text"
+                                                            style="height: 40px; width: 300px; border: none; border-radius: 4px; margin-right: 10px;"
+                                                            v-model="task.subTasks[subIndex].subTaskEditedValue"
+                                                            :placeholder="task.subTasks[subIndex].txt"
+                                                        />
+                                                        <button type="button" class="btn btn-primary" id="save-edited-subtask"
                                                                 @click="saveEditedSubtask(index, subIndex)" >Save
                                                         </button>
                                                     </div>
-                                                </li>                             
+                                                </li>
                                                 <li class="list-group-item ps-3 pe-0 py-1 rounded-0 border-0 bg-transparent">
                                                     <div class="d-flex flex-row justify-content-end mb-2">
-                                                        <a href="#!" class="text-info" data-mdb-toggle="tooltip" 
+                                                        <a href="#!" class="text-info" data-mdb-toggle="tooltip"
                                                             title="Edit todo"
                                                             @click="editSubtask(index, subIndex)">
                                                             <i class="fas fa-pencil-alt me-3"></i>
                                                         </a>
                                                         <a href="#!" class="text-danger" data-mdb-toggle="tooltip"
-                                                        title="Delete todo" 
+                                                        title="Delete todo"
                                                         @click.stop="deleteSubtask(index, subIndex)">
                                                         <i class="fas fa-trash-alt me-3"></i>
                                                         </a>
@@ -233,13 +233,13 @@
                                                             </p>
                                                         </a>
                                                     </div>
-                                                </li>                            
-                                            </ul>                                 
-                                        </div> 
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
-                                    <hr> 
-                                </div>                        
-                            </div>                                                   
+                                    <hr>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -256,17 +256,19 @@
 
 <script>
     $( function() {
- 
+
       $( "#sortable-list" ).sortable({
             items:".item, .subtask-sortable-list-item ",
-                      
+
         }).disableSelection();
 
-    });         
+    });
 
 
 </script>
 <script type="text/javascript">
+    import axios from "axios";
+
     var vm = new Vue({
         el: "#to-do-list",
         data: {
@@ -289,29 +291,49 @@
 
         },
         methods: {
-            addTask: function () {
-                this.tasks.push({
-                    id: this.num,
-                    words: this.taskText,
-                    done: this.done,
-                    newValue: '',
-                    cancel: this.cancel,
-                    date: new Date(),
-                    editMode: this.editMode,
-                    reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
-                    subTasks: [],
-                    subTaskTxt:'',
-                    completionDate:0
-                });
-                this.taskText = '';
-                this.num++;
+            async addTask() {
+                try {
+                    const response = await axios.post('/api/store', {
+                        words: this.taskText,
+                        done: false,
+                        date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
+                        editMode: false,
+                        reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
+                    });
+                    console.log(response.data);
+                    this.taskText = '';
+                    this.fetchTasks();
+                } catch (error) {
+                    console.error(error);
+                }
+            },async fetchTasks() {
+                try {
+                    const response = await axios.get('/api/tasks');
+                    this.tasks = response.data.tasks;
+                    this.updateTasks();
+                } catch (error) {
+                    console.error(error);
+                }
             },
-            deleteTask: function (index) {
-                this.tasks.splice(index, 1);
+            deleteTask(index) {
+                const taskId = this.tasks[index]._id;
+                axios.delete(`/api/delete/${taskId}`)
+                    .then(() => {
+                        this.tasks.splice(index, 1);
+                        this.updateTasks();
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
             },
+
+
+
             deleteSubtask: function (parentIndex, childIndex) {
                 this.tasks[parentIndex].subTasks.splice(childIndex, 1);
             },
+
+
             editTask: function (index) {
                 this.tasks[index].editMode = true;
             },
@@ -322,19 +344,47 @@
                 this.tasks[parentIndex].subTasks[childIndex].txt  = this.tasks[parentIndex].subTasks[childIndex].subTaskEditedValue;
                 this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = false;
             },
+
+
+
             saveEditedTask(index) {
-                this.tasks[index].words = this.tasks[index].newValue;
+                this.tasks[index].words = this.newValue;
                 this.tasks[index].editMode = false;
+
+                const taskId = this.tasks[index]._id;
+                axios.put(`/api/update/${taskId}`, { words: this.newValue })
+                    .then(() => {
+                        this.updateTasks();
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
             },
             checkCompletedTask(index) {
-                isChecked = !this.tasks[index].done;
-                if (isChecked) {
-                    this.tasks[index].completionDate = new Date();
-                    this.completedTasks.push(this.tasks[index], this.task[index].subTasks);
-                } else {
-                    this.completedTasks.splice(this.tasks[index], 1);
-                }
+                const taskId = this.tasks[index]._id;
+                const isChecked = !this.tasks[index].done;
+
+                axios.put(`/api/tasks/${taskId}`, { done: isChecked })
+                    .then(() => {
+                        if (isChecked) {
+                            this.completedTasks.push(this.tasks[index]);
+                        } else {
+                            const completedIndex = this.completedTasks.findIndex((task) => task._id === taskId);
+                            if (completedIndex !== -1) {
+                                this.completedTasks.splice(completedIndex, 1);
+                            }
+                        }
+                        this.updateTasks();
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
             },
+
+
+
+
+
             checkCompletedSubTask(parentIndex, childIndex) {
                 isChecked = !this.tasks[parentIndex].subTasks[childIndex].done;
                 if (isChecked) {
@@ -365,15 +415,15 @@
                 this.tasks[index].subTaskTxt = '',
                 this.subTaskId++;
             },
-            sortAccordingToAddedDate(){        
-                
-                return this.tasks.sort( 
-                    (taskA, taskB) => Number(taskA.date) - Number(taskB.date),
-                );            
-            },
-            sortAccordingToCompletedDate(){                
+            sortAccordingToAddedDate(){
 
-                return this.completedTasks.sort( 
+                return this.tasks.sort(
+                    (taskA, taskB) => Number(taskA.date) - Number(taskB.date),
+                );
+            },
+            sortAccordingToCompletedDate(){
+
+                return this.completedTasks.sort(
                     (taskA, taskB) => Number(taskA.completionDate) - Number(taskB.completionDate),
                 );
             },
@@ -403,7 +453,7 @@
                             return this.tasks;
                     }
                 }
-                
+
             },
             completionPercentage() {
                 var totalTasks = this.tasks.length;
@@ -411,7 +461,7 @@
                 var completedTasks = 0;
                 var completedSubtasks = 0;
 
-                for (let i = 0; i < this.tasks.length; i++) { 
+                for (let i = 0; i < this.tasks.length; i++) {
                     if (this.tasks[i].done) {
                         completedTasks++;
                         completedSubtasks += this.tasks[i].subTasks.length;
@@ -420,8 +470,8 @@
                             if (this.tasks[i].subTasks[n].subTaskDone) {
                                 completedSubtasks++;
                             }
-                        }   
-                    }                 
+                        }
+                    }
                 }
                 var total = totalTasks + totalSubtasks;
                 var completed = completedTasks + completedSubtasks;
@@ -458,15 +508,15 @@
                                 }
                             // }
 
-                            }  
+                            }
                         }
-                    }                                      
-                }                
+                    }
+                }
                 console.log("completedSubtasks",completedSubtasks);
                 console.log("completedTasks",completedTasks);
                 console.log("totalTasksInDay",totalTasksInDay);
                 console.log("totalSubtasksInDay",totalSubtasksInDay);
-                
+
                 if (totalTasksInDay === 0) {
                     return 0;
                 }
@@ -492,7 +542,7 @@
             setInterval(this.isPastDue, 60000); // call getCurrentTime every minute
             $('.task-list').sortable();
 
-        },        
+        },
     })
 
 

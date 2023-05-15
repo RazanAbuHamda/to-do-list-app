@@ -1,5 +1,5 @@
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-
+import axios from 'axios';
 var vm = new Vue({
     el: "#to-do-list",
     data: {
@@ -17,21 +17,40 @@ var vm = new Vue({
         percentageNum: 0,
     },
     methods: {
-        addTask: function () {
-            this.tasks.push({
-                id: this.num,
-                words: this.taskText,
-                done: this.done,
-                cancel: this.cancel,
-                date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
-                editMode: this.editMode,
-                reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
-            });
-            this.taskText = '';
-            this.num++;
+        async addTask() {
+            try {
+                const response = await axios.post('/api/store', {
+                    words: this.taskText,
+                    done: false,
+                    date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
+                    editMode: false,
+                    reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
+                });
+                console.log(response.data);
+                this.taskText = '';
+                this.fetchTasks();
+            } catch (error) {
+                console.error(error);
+            }
+        },async fetchTasks() {
+            try {
+                const response = await axios.get('/api/tasks');
+                this.tasks = response.data.tasks;
+                this.updateTasks();
+            } catch (error) {
+                console.error(error);
+            }
         },
-        deleteTask: function (index) {
-            this.tasks.splice(index, 1);
+        deleteTask(index) {
+            const taskId = this.tasks[index]._id;
+            axios.delete(`/api/delete/${taskId}`)
+                .then(() => {
+                    this.tasks.splice(index, 1);
+                    this.updateTasks();
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
         },
         editTask: function (index) {
             this.tasks[index].editMode = true;
@@ -39,17 +58,54 @@ var vm = new Vue({
         saveEditedTask(index) {
             this.tasks[index].words = this.newValue;
             this.tasks[index].editMode = false;
+
+            const taskId = this.tasks[index]._id;
+            axios.put(`/api/update/${taskId}`, { words: this.newValue })
+                .then(() => {
+                    this.updateTasks();
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
         },
         checkCompletedTask(index) {
-            isChecked = !this.tasks[index].done;
-            if (isChecked) {
-                this.completedTasks.push(this.tasks[index]);
-            } else {
-                this.completedTasks.splice(this.tasks[index], 1);
-            }
+            const taskId = this.tasks[index]._id;
+            const isChecked = !this.tasks[index].done;
+
+            axios.put(`/api/tasks/${taskId}`, { done: isChecked })
+                .then(() => {
+                    if (isChecked) {
+                        this.completedTasks.push(this.tasks[index]);
+                    } else {
+                        const completedIndex = this.completedTasks.findIndex((task) => task._id === taskId);
+                        if (completedIndex !== -1) {
+                            this.completedTasks.splice(completedIndex, 1);
+                        }
+                    }
+                    this.updateTasks();
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
         },
         updateTasks() {
-            this.tasks = this.filteredTasks();
+            switch (this.selectedFilter) {
+                case "1":
+                    this.filteredTasks = this.tasks;
+                    break;
+                case "2":
+                    this.filteredTasks = this.completedTasks;
+                    break;
+                case "3":
+                    this.filteredTasks = this.tasks.filter(task => !task.done);
+                    break;
+                case "4":
+                    this.filteredTasks = this.canceledTasks;
+                    break;
+                default:
+                    this.filteredTasks = this.tasks;
+                    break;
+            }
         },
 
     },
