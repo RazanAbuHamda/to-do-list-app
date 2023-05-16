@@ -25,140 +25,127 @@
     .gradient-custom {
         /* fallback for old browsers */
         background: #1266F1;
-
-        }
-
-
+    }
 </style>
 
 <section class="gradient-custom">
     <div class="container py-5 h-100" id="signup-div">
-      <div class="row d-flex justify-content-center align-items-center h-100">
-        <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-          <div class="card">
-            <div class="card-body p-5 text-center">
-  
-              <div class="mb-md-5 mt-md-4 pb-4">
-                
-                <h2 class="fw-bold mb-2 text-uppercase">Signup</h2>
-                <p class="text-black-50 mb-5">Please enter your login and password!</p>
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="card">
+                    <div class="card-body p-5 text-center">
 
-                <form action="login.html">
-                  <!-- 2 column grid layout with text inputs for the first and last names -->
-                  <div class="row mb-5 ">
+                        <div class="mb-md-5 mt-md-4 pb-4">
 
-                    <!-- first name input -->
-                    <div class="col">
-                      <div class="form-outline">
-                        <input 
-                          type="text" 
-                          id="fname" 
-                          v-model="fname"
-                          class="form-control form-control-lg" 
-                        />
-                        <label class="form-label" for="form3Example1">First name</label>
-                      </div>
+                            <h2 class="fw-bold mb-2 text-uppercase">Signup</h2>
+                            <p class="text-black-50 mb-5">Please enter your login and password!</p>
+
+                            <form action="login.html">
+                                <!-- 2 column grid layout with text inputs for the first and last names -->
+                                <div class="row mb-5 ">
+
+                                    <!-- first name input -->
+                                    <div class="col">
+                                        <div class="form-outline">
+                                            <input
+                                                    type="text"
+                                                    id="fname"
+                                                    v-model="name"
+                                                    class="form-control form-control-lg"
+                                            />
+                                            <label class="form-label" for="form3Example1">First name</label>
+                                        </div>
+                                    </div>
+
+                                    <!-- last name input -->
+                                    <div class="col">
+                                        <div class="form-outline">
+                                            <input
+                                                    type="text"
+                                                    id="lname"
+                                                    v-model="lname"
+                                                    class="form-control form-control-lg"
+                                            />
+                                            <label class="form-label" for="form3Example2
+">Last name</label>
+                                        </div>
+                                    </div>                            </div>
+
+                                <!-- Email input -->
+                                <div class="form-outline mb-5">
+                                    <input
+                                            type="email"
+                                            id="email"
+                                            v-model="email"
+                                            class="form-control form-control-lg"
+                                    />
+                                    <label class="form-label" for="form3Example3">Email address</label>
+                                </div>
+
+                                <!-- Password input -->
+                                <div class="form-outline mb-5">
+                                    <input
+                                            type="password"
+                                            id="password"
+                                            v-model="password"
+                                            class="form-control form-control-lg"
+                                    />
+                                    <label class="form-label" for="form3Example4">Password</label>
+                                </div>
+
+                                <button @click="validateSignup" class="btn btn-outline-dark btn-lg px-5">Signup</button>
+                                <br><br>
+
+                            </form>
+
+                            <div>
+                                <p class="mb-0">Already have an account? <a href="index.html" class="text-dark-50 fw-bold">Log In</a>
+                                </p>
+                            </div>
+
+                        </div>
                     </div>
-
-                    <!-- last name input -->
-                    <div class="col">
-                      <div class="form-outline">
-                        <input 
-                          type="text" 
-                          id="lname" 
-                          v-model="lname"
-                          class="form-control form-control-lg" 
-                        />
-                        <label class="form-label" for="form3Example2">Last name</label>
-                      </div>
-                    </div>
-
-                  </div>
-                
-                  <!-- Email input -->
-                  <div class="form-outline mb-5">
-                    <input 
-                      type="email" 
-                      id="email" 
-                      v-model="email"
-                      class="form-control form-control-lg" 
-                    />
-                    <label class="form-label" for="form3Example3">Email address</label>
-                  </div>
-                
-                  <!-- Password input -->
-                  <div class="form-outline mb-5">
-                    <input 
-                      type="password" 
-                      id="password" 
-                      v-model="password"
-                      class="form-control form-control-lg" 
-                    />
-                    <label class="form-label" for="form3Example4">Password</label>
-                  </div>
-                
-
-                  <button @click="registerUser" class="btn btn-outline-dark btn-lg px-5">Signup</button>
-                  <br><br>
-              
-                </form>                             
-  
-                <div>
-                  <p class="mb-0">Already have an account? <a href="index.html" class="text-dark-50 fw-bold">Log In</a>
-                  </p>
                 </div>
-  
             </div>
-          </div>
         </div>
-      </div>
     </div>
-  </section>
+</section>
 <!-- End your project here-->
-
-
 <script type="text/javascript" src="js/mdb.min.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="./js/jwt-decode.js"></script>
 <script type="text/javascript">
- var signup = new Vue({
-  el: "#signup",
-  data() {
-    return {
-      name: null,
-      email: null,
-      password: null
-    };
-  },
-  methods: {
-    validateSignup(e) {
-      try {
-        console.warn(this.data);
-        axios
-          .post("http://localhost:3000/api/user/register/", {
-            name: this.name,
-            email: this.email,
-            password: this.password
-          })
-          .then(result => {
-            console.log(result.data);
-            window.location.href = 'http://localhost:8080/index.html';
-          })
-          .catch(error => {
-            console.log(error);
-          });
-        e.preventDefault();
-      } catch (e) {
-        console.log(e);
-      }
-    }
+    var signup = new Vue({
+        el: "#signup-div",
+        data() {
+            return {
+                name: null,
+                email: null,
+                password: null
+            };
+        },
+        methods: {
+            async validateSignup() {
+                try {
+                    const response = await axios.post("http://localhost:3000/api/user/register/", {
+                        name: this.name,
+                        email: this.email,
+                        password: this.password
+                    });
+                    const decoded = jwt_decode(response.data);
+                    console.log(decoded);
+                    window.location.href = 'http://localhost:8080/index.html';
 
-  }
-,
-    mounted(){
-      // this will check 
-    }
-  })
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        },
+        mounted() {
+            // this will check
+        }
+    });
+
 </script>
-
 </body>
 </html>
