@@ -319,12 +319,12 @@
                 try {
                     const response = await axios.post('http://localhost:3000/api/task/store', {
                         description: this.taskText,
-                        date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
+                        createdAt: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
                         user_id: my_id,
                     }, {
                         headers: {
                             auth_token: my_token
-                        }
+                        },
                     });
 
                     console.log(response.data);
@@ -341,29 +341,49 @@
                     editMode: this.editMode,
                     reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
                     subTasks: [],
-                    subTaskTxt:'',
-                    completionDate:0
+                    subTaskTxt: '',
+                    completionDate: 0
                 });
                 this.taskText = '';
+                this.num++;
+            },
+            addToView(task){
+                this.tasks.push({
+                    id: task.num,
+                    words: task.description,
+                    done: task.done,
+                    newValue: '',
+                    cancel: task.cancel,
+                    date: new Date(),
+                    editMode: this.editMode,
+                    reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
+                    subTasks: [],
+                    subTaskTxt: '',
+                    completionDate: 0
+                });
                 this.num++;
             },
             async fetchTasks() {
                 try {
                     const response = await axios.get('http://localhost:3000/api/task/tasks', {
-                        // token is sent in headers
                         headers: {
-                            auth_token : my_token
+                            auth_token: my_token
                         }
                     });
-                    //  assign fetched array from api to (this.tasks)
-                    this.tasks = response.data.tasks;
-                    console.log(this.tasks);
+
                     this.completePercent = response.data.OverallCompletionPercentage;
+                    const tasks = response.data.tasks;
+
+                    tasks.forEach((task) => {
+                        this.addToView(task); // Add 'this' to call the method
+                    });
+
+                    console.log(response.data.tasks);
                 } catch (error) {
-                    // throw some error msg
                     console.error(error);
                 }
             },
+
             async deleteTask(index) {
                 const taskId = this.tasks[index]._id;
                 const response = await axios.delete(`
@@ -579,7 +599,7 @@
 
         },
         mounted() {
-            // this.fetchTasks();
+            this.fetchTasks();
             // this.authenticateUser();
             // //هاي عملتها عشان كل دقيقة تستدعي الميثود الي بتفحص هل مر يوم كامل على المهمة عشان ألغيها ؟
             // setInterval(this.isPastDue, 60000); // call getCurrentTime every minute
