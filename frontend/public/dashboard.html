@@ -331,23 +331,11 @@
                 } catch (error) {
                     console.error(error);
                 }
-                this.tasks.push({
-                    id: this.num,
-                    words: this.taskText,
-                    done: this.done,
-                    newValue: '',
-                    cancel: this.cancel,
-                    date: new Date(),
-                    editMode: this.editMode,
-                    reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
-                    subTasks: [],
-                    subTaskTxt: '',
-                    completionDate: 0
-                });
+                this.fetchTasks();
                 this.taskText = '';
                 this.num++;
             },
-            addToView(task){
+            addToView(task) {
                 this.tasks.push({
                     id: task.num,
                     words: task.description,
@@ -385,16 +373,19 @@
             },
 
             async deleteTask(index) {
-                const taskId = this.tasks[index]._id;
-                const response = await axios.delete(`
-                ${taskId}`)
-                    .then(() => {
-                        this.tasks.splice(index, 1);
-                        this.updateTasks();
-                    })
-                    .catch((error) => {
-                        console.error(error);
+                try {
+                    const taskId = this.tasks[index].id; // Get the task ID
+                    const response = await axios.delete(`http://localhost:3000/api/task/${taskId}`, {
+                        headers: {
+                            auth_token: my_token
+                        }
                     });
+
+                    this.tasks.splice(index, 1);
+                    // this.updateTasks();
+                } catch (error) {
+                    console.error(error);
+                }
             },
 
             deleteSubtask: function (parentIndex, childIndex) {
@@ -460,7 +451,21 @@
             sortTasks() {
                 this.tasks = this.filteredTasks();
             },
-            addSubtask: function (index) {
+            async addSubtask(index) {
+                try {
+                    const response = await axios.post('http://localhost:3000/api/task/subTask/insert', {//ما عرفت أصل للاي دي تبع التاسك عشان هيك
+                        description: this.taskText,
+                    }, {
+                        headers: {
+                            auth_token: my_token
+                        },
+                    });
+
+                    console.log(response.data);
+                } catch (error) {
+                    console.error(error);
+                }
+
                 this.tasks[index].subTasks.push({
                     parentId: index,
                     id: this.subTaskId,
@@ -470,10 +475,10 @@
                     cancel: this.subTaskCancel,
                     subTaskEditMode: false,
                     subTaskEditedValue: '',
-
                 });
-                this.tasks[index].subTaskTxt = '',
-                    this.subTaskId++;
+
+                this.tasks[index].subTaskTxt = '';
+                this.subTaskId++;
             },
             sortAccordingToAddedDate() {
 
