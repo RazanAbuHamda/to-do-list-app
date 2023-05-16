@@ -86,35 +86,39 @@
 <!-- MDB -->
 <script type="text/javascript" src="js/mdb.min.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="./js/jwt-decode.js"></script>
 
 <script>
     var vue = new Vue({
       el: "#login",
       data(){
-        return{
-          
+        return{          
             email : null,
-            password : null
-          
+            password : null          
         }
       },
       methods:{
-        validateUser(e){
+        validateUser(e){          
           try{
-            console.warn(this.data);
             axios.post("http://localhost:3000/api/user/login/", {
               email:this.email, 
               password:this.password
             })
             .then((result) => {
-              console.log(result.data);
+              // decode the token for later use
+              const decoded = jwt_decode(result.data);
+              // save nesseccary data in local storage
+              localStorage.setItem('token', result.data)
+              localStorage.setItem('id', decoded._id)
+              // console.log(result.data);
+              // console.log((decoded));
+              
               window.location.href = 'http://localhost:8080/dashboard.html';
             })
-            .catch(error => {
-              console.log(error);
-            })
+            .catch(error => console.log(error))
             e.preventDefault();
           }catch(e){
+            // through some error/warning
             console.log(e);
           }
         },   
