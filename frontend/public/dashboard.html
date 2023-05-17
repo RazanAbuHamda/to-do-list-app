@@ -337,7 +337,8 @@
             },
             addToView(task) {
                 this.tasks.push({
-                    id: task.num,
+                    id: task._id,
+                    user_id : task.user_id,
                     words: task.description,
                     done: task.done,
                     newValue: '',
@@ -392,11 +393,10 @@
 
 
             //done
-           async  deleteSubtask(index){
-            
+           async  deleteSubtask(index, subIndex){         
             try {
                const taskId = this.tasks[index].id; 
-               const subtaskID = this.tasks[index].subtasks[index].id
+               const subtaskID = this.tasks[index].subtasks[subIndex].id
 
                 const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {
                         headers: {
@@ -410,17 +410,11 @@
 
                     this.tasks.splice(index, 1);
                     // this.updateTasks();
-                } catch (error) {
-                    console.error(error);
-                }
+            } catch (error) {
+                console.error(error);
+            }
             },
-
-
-
-
-            },
-
-
+        
             editTask: function (index) {
                 this.tasks[index].editMode = true;
             },
@@ -500,7 +494,8 @@
             //done 
             async addSubtask(index) {
                 try {
-                    const taskID = this.tasks[index]._id
+                    const taskID = this.tasks[index].id;
+                    console.log(taskID);
                     const response = await axios.post(`http://localhost:3000/api/subtask/insert/${taskID}`, {
                         description: this.subTaskTxt,
                     }, {
@@ -508,9 +503,9 @@
                             auth_token: my_token
                         },
                     });
-            //response : task 
-           //to add the last subtask to subtasks array to display in vue :
-            this.tasks[index].subTasks.push(response.data.subtasks[response.data.subtasks.length-1])
+                //response : task 
+            //to add the last subtask to subtasks array to display in vue :
+                this.tasks[index].subTasks.push(response.data.subtasks[response.data.subtasks.length-1])
 
                     console.log(response.data);
                 } catch (error) {
@@ -533,6 +528,7 @@
                 this.subTaskId++;
   */
             },
+            
             sortAccordingToAddedDate() {
 
                 return this.tasks.sort(
@@ -665,6 +661,7 @@
 
         },
     })
+
 
 
 </script>

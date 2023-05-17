@@ -34,8 +34,8 @@ const subtask = await task.subtasks.filter(subtask => subtask._id == subtaskid) 
 
     console.log(subtask)
 
-    if (req.body.title)
-      subtask[0].title = req.body.title
+    // if (req.body.title)
+    //   subtask[0].title = req.body.title
 
     if (req.body.description)
       subtask[0].description = req.body.description
