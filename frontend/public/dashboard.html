@@ -324,6 +324,8 @@
                         }
                     });
                     //  assign fetched array from api to (this.tasks)
+
+                    console.log(response)
                     this.tasks = response.data.tasks; 
                     // console.log(this.tasks);
                     this.completePercent = response.data.OverallCompletionPercentage;
