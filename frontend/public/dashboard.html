@@ -353,6 +353,7 @@
             },
             async fetchTasks() {
                 try {
+
                     const response = await axios.get('http://localhost:3000/api/task/tasks', {
                         headers: {
                             auth_token: my_token
@@ -370,7 +371,7 @@
                     console.error(error);
                 }
             },
-
+//done
             async deleteTask(index) {
                 try {
                     const taskId = this.tasks[index].id; // Get the task ID
@@ -378,7 +379,9 @@
                         headers: {
                             auth_token: my_token
                         }
-                    });
+                    }).then(response => {
+                        this.tasks = this.tasks.filter(task => task.id !== taskId)
+                    }); //remove tasks from task array
 
                     this.tasks.splice(index, 1);
                     // this.updateTasks();
@@ -387,8 +390,32 @@
                 }
             },
 
-            deleteSubtask: function (parentIndex, childIndex) {
-                this.tasks[parentIndex].subTasks.splice(childIndex, 1);
+
+            //done
+           async  deleteSubtask(index){
+            
+            try {
+               const taskId = this.tasks[index].id; 
+               const subtaskID = this.tasks[index].subtasks[index].id
+
+                const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {
+                        headers: {
+                            auth_token: my_token
+                        }
+                    }).then(response => {
+                        this.tasks = this.tasks.filter(task => task.id !== taskId)
+                    }); //remove tasks from task array
+
+                    this.tasks.splice(index, 1);
+                    // this.updateTasks();
+                } catch (error) {
+                    console.error(error);
+                }
+            },
+
+
+
+
             },
 
 
@@ -450,22 +477,28 @@
             sortTasks() {
                 this.tasks = this.filteredTasks();
             },
+
+            //done 
             async addSubtask(index) {
                 try {
-                    const response = await axios.post('http://localhost:3000/api/task/subTask/insert', {//ما عرفت أصل للاي دي تبع التاسك عشان هيك
-                        description: this.taskText,
+                    const taskID = this.tasks[index]._id
+                    const response = await axios.post(`http://localhost:3000/api/subtask/insert/${taskID}`, {
+                        description: this.subTaskTxt,
                     }, {
                         headers: {
                             auth_token: my_token
                         },
                     });
+            //response : task 
+           //to add the last subtask to subtasks array to display in vue :
+            this.tasks[index].subTasks.push(response.data.subtasks[response.data.subtasks.length-1])
 
                     console.log(response.data);
                 } catch (error) {
                     console.error(error);
                 }
-
-                this.tasks[index].subTasks.push({
+/*
+              this.tasks[index].subTasks.push({
                     parentId: index,
                     id: this.subTaskId,
                     txt: this.tasks[index].subTaskTxt,
@@ -475,9 +508,11 @@
                     subTaskEditMode: false,
                     subTaskEditedValue: '',
                 });
-
+*/
+/*
                 this.tasks[index].subTaskTxt = '';
                 this.subTaskId++;
+  */
             },
             sortAccordingToAddedDate() {
 
