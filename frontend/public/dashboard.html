@@ -424,10 +424,25 @@
             },
             editSubtask: function (parentIndex, childIndex) {
                 this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = true;
+
+
             },
+            //modified
             saveEditedSubtask: function (parentIndex, childIndex) {
                 this.tasks[parentIndex].subTasks[childIndex].txt = this.tasks[parentIndex].subTasks[childIndex].subTaskEditedValue;
                 this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = false;
+
+
+                const taskid = this.tasks[parentIndex].id
+                const subtaskid = this.tasks[parentIndex].subtasks[childIndex].id
+
+                axios.post(`http://localhost:3000/api/update/${taskid}/${subtaskid}`).
+                then(()=>{
+                        this.editSubtask()
+                    }).catch((error) => {
+                        console.error(error);
+                    });
+
             },
             saveEditedTask(index) {
                 this.tasks[index].words = this.newValue;
