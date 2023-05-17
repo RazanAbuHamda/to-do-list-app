@@ -338,7 +338,7 @@
             addToView(task) {
                 this.tasks.push({
                     id: task._id,
-                    user_id : task.user_id,
+                    user_id: task.user_id,
                     words: task.description,
                     done: task.done,
                     newValue: '',
@@ -376,13 +376,34 @@
             async deleteTask(index) {
                 try {
                     const taskId = this.tasks[index].id; // Get the task ID
-                    const response = await axios.delete(`http://localhost:3000/api/task/${taskId}`, {
+                    const response = await axios.delete(`http://localhost:3000/api/task/delete/${taskId}`, {
                         headers: {
                             auth_token: my_token
                         }
-                    }).then(response => {
-                        this.tasks = this.tasks.filter(task => task.id !== taskId)
-                    }); //remove tasks from task array
+                    });
+                    this.tasks = this.tasks.filter(task => task.id !== taskId); // Remove task from task array
+                } catch (error) {
+                    console.error(error);
+                }
+            },
+
+
+            //done
+            async deleteSubtask(index, subindex) {
+
+                try {
+                    const taskId = this.tasks[index].id;
+                    const subtaskID = this.tasks[index].subTasks[subindex].id
+
+                    const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {
+                        headers: {
+                            auth_token: my_token
+                        }
+                    })
+
+                        .then(response => {
+                            this.tasks[index].subTasks = this.tasks.subTasks.filter(subtask => subtask.id !== subtaskID)
+                        }); //remove tasks from task array
 
                     this.tasks.splice(index, 1);
                     // this.updateTasks();
@@ -391,31 +412,6 @@
                 }
             },
 
-
-            //done
-           async  deleteSubtask(index,subindex){
-            
-            try {
-               const taskId = this.tasks[index].id; 
-               const subtaskID = this.tasks[index].subTasks[subindex].id
-
-                const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {
-                        headers: {
-                            auth_token: my_token
-                        }
-                    })
-                    
-                    .then(response => {
-                        this.tasks[index].subTasks = this.tasks.subTasks.filter(subtask => subtask.id !== subtaskID)
-                    }); //remove tasks from task array
-
-                    this.tasks.splice(index, 1);
-                    // this.updateTasks();
-            } catch (error) {
-                console.error(error);
-            }
-            },
-        
             editTask: function (index) {
                 this.tasks[index].editMode = true;
             },
@@ -429,20 +425,20 @@
                 this.tasks[parentIndex].subTasks[childIndex].txt = this.tasks[parentIndex].subTasks[childIndex].subTaskEditedValue;
                 this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = false;
 
-         // add changes to DB 
+                // add changes to DB
                 const taskid = this.tasks[parentIndex].id
                 const subtaskid = this.tasks[parentIndex].subtasks[childIndex].id
 
-                axios.put(`http://localhost:3000/api/update/${taskid}/${subtaskid}`, 
-                {desacription : subTaskEditedValue })//subtaskeditedvalue
-                then(()=>{
-                        this.editSubtask()
-                    }).catch((error) => {
-                        console.error(error);
-                    });
+                axios.put(`http://localhost:3000/api/update/${taskid}/${subtaskid}`,
+                    {desacription: subTaskEditedValue})//subtaskeditedvalue
+                then(() => {
+                    this.editSubtask()
+                }).catch((error) => {
+                    console.error(error);
+                });
 
             },
-          
+
             saveEditedTask(index) {
                 this.tasks[index].words = this.newValue;
                 this.tasks[index].editMode = false;
@@ -503,32 +499,32 @@
                             auth_token: my_token
                         },
                     });
-            //response : task 
-           //to add the last subtask to subtasks array to display in vue :
-            this.tasks[index].subTasks.push(response.data.subTasks[response.data.subTasks.length-1])
+                    //response : task
+                    //to add the last subtask to subtasks array to display in vue :
+                    this.tasks[index].subTasks.push(response.data.subTasks[response.data.subTasks.length - 1])
 
                     console.log(response.data);
                 } catch (error) {
                     console.error(error);
                 }
-/*
-              this.tasks[index].subTasks.push({
-                    parentId: index,
-                    id: this.subTaskId,
-                    txt: this.tasks[index].subTaskTxt,
-                    date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
-                    done: this.subTaskDone,
-                    cancel: this.subTaskCancel,
-                    subTaskEditMode: false,
-                    subTaskEditedValue: '',
-                });
-*/
-/*
-                this.tasks[index].subTaskTxt = '';
-                this.subTaskId++;
-  */
+                /*
+                              this.tasks[index].subTasks.push({
+                                    parentId: index,
+                                    id: this.subTaskId,
+                                    txt: this.tasks[index].subTaskTxt,
+                                    date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
+                                    done: this.subTaskDone,
+                                    cancel: this.subTaskCancel,
+                                    subTaskEditMode: false,
+                                    subTaskEditedValue: '',
+                                });
+                */
+                /*
+                                this.tasks[index].subTaskTxt = '';
+                                this.subTaskId++;
+                  */
             },
-            
+
             sortAccordingToAddedDate() {
 
                 return this.tasks.sort(
@@ -652,7 +648,7 @@
             },
 
         },
-     
+
         mounted() {
             this.fetchTasks();
             // this.authenticateUser();
@@ -662,7 +658,6 @@
 
         },
     })
-
 
 
 </script>
