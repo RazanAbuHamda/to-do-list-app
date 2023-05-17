@@ -454,7 +454,7 @@
                         .then(() => {
                             this.tasks[index].words = updatedDescription;
                             this.editTask(index);
-                            this.fetchTasks();
+                            window.location.reload(); // إعادة تحميل الصفحة
                         })
                         .catch((error) => {
                             console.error(error);
