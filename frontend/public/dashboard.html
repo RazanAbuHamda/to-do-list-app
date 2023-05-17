@@ -337,7 +337,8 @@
             },
             addToView(task) {
                 this.tasks.push({
-                    id: task.num,
+                    id: task._id,
+                    user_id : task.user_id,
                     words: task.description,
                     done: task.done,
                     newValue: '',
@@ -410,17 +411,11 @@
 
                     this.tasks.splice(index, 1);
                     // this.updateTasks();
-                } catch (error) {
-                    console.error(error);
-                }
+            } catch (error) {
+                console.error(error);
+            }
             },
-
-
-
-
-            },
-
-
+        
             editTask: function (index) {
                 this.tasks[index].editMode = true;
             },
@@ -533,6 +528,7 @@
                 this.subTaskId++;
   */
             },
+            
             sortAccordingToAddedDate() {
 
                 return this.tasks.sort(
@@ -666,6 +662,7 @@
 
         },
     })
+
 
 
 </script>
