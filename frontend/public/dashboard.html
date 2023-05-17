@@ -403,20 +403,19 @@
             async deleteSubtask(index, subindex) {
                 try {
                     const taskId = this.tasks[index].id;
-                    const subtaskID = this.tasks[index].subTasks[subindex]._id
+                    const subtaskID = this.tasks[index].subTasks[subindex].id
 
-                    const response = await axios.delete(`http://localhost:3000/api/subtask/delete/${taskId}/${subtaskID}`, {                        
+                    const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {                        
                         headers: {
                             auth_token: my_token
                         }
-                    })                    
-                    .then(response => {
-                            // this.tasks[index].subTasks = this.tasks.subTasks.filter(subtask => subtask.id !== subtaskID)
-                            //remove tasks from task array
-                            this.tasks.splice(index, 1);
-                            window.location.reload();
-                        }); 
+                    })
                     
+                    .then(response => {
+                            this.tasks[index].subTasks = this.tasks.subTasks.filter(subtask => subtask.id !== subtaskID)
+                        }); 
+                    //remove tasks from task array
+                    this.tasks.splice(index, 1);
                     // this.updateTasks();
                 } catch (error) {
                     console.error(error);
@@ -475,25 +474,26 @@
                     console.error(error);
                 }                  
             },
-            checkCompletedTask(index) {
+            async checkCompletedTask(index) {
                 const taskId = this.tasks[index]._id;
                 const isChecked = !this.tasks[index].done;
 
-                axios.put(`http://localhost:3000/api/tasks/${taskId}`, {done: isChecked})
-                    .then(() => {
-                        if (isChecked) {
-                            this.completedTasks.push(this.tasks[index]);
-                        } else {
-                            const completedIndex = this.completedTasks.findIndex((task) => task._id === taskId);
-                            if (completedIndex !== -1) {
-                                this.completedTasks.splice(completedIndex, 1);
-                            }
+                try {
+                    await axios.put(`http://localhost:3000/api/tasks/${taskId}`, { done: isChecked });
+
+                    if (isChecked) {
+                        this.completedTasks.push(this.tasks[index]);
+                    } else {
+                        const completedIndex = this.completedTasks.findIndex((task) => task._id === taskId);
+                        if (completedIndex !== -1) {
+                            this.completedTasks.splice(completedIndex, 1);
                         }
-                        // this.updateTasks();
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                    });
+                    }
+
+                    // this.updateTasks();
+                } catch (error) {
+                    console.error(error);
+                }
             },
             checkCompletedSubTask(parentIndex, childIndex) {
                 isChecked = !this.tasks[parentIndex].subTasks[childIndex].done;
@@ -605,8 +605,8 @@
             }
 
             },
-            completionPercentage() {
-                return this.completePercent
+            // completionPercentage() {
+            //     return this.completePercent
                 // var totalTasks = this.tasks.length;
                 // var totalSubtasks = this.tasks.reduce((acc, task) => acc + task.subTasks.length, 0);
                 // var completedTasks = 0;
@@ -632,6 +632,17 @@
                 // } else {
                 //         return Math.round((completed / total) * 100);
                 //     }
+            // },
+            //done
+            async completionPercentage() {
+                try {
+                    const response = await axios.get('http://localhost:3000/api/task/taskCompletionPercentage/');
+                    this.completePercent = response.data.OverallCompletionPercentage;
+                    console.log(response.data);
+                    this.checkCompletedTask(index);
+                } catch (error) {
+                    console.error(error);
+                }
             },
             completionInCurrentDayPercentage() {
                 const today = new Date();
