@@ -228,7 +228,7 @@
                                                     v-bind:style="{ 'background-color': task.subTasks[subIndex].subTaskDone ? completedColor : '' }">
                                                     <p class="lead fw-normal mb-0"
                                                        v-if="!task.subTasks[subIndex].subTaskEditMode">
-                                                        {{ task.subTasks[subIndex].txt }}</p>
+                                                        {{ task.subTasks[subIndex].description }}</p>
                                                     <div v-else>
                                                         <input
                                                                 type="text"
@@ -356,7 +356,7 @@
                     date: new Date(),
                     editMode: this.editMode,
                     reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
-                    subTasks: [],
+                    subTasks: task.subtasks,
                     subTaskTxt: '',
                     completionDate: 0
                 });
@@ -375,14 +375,16 @@
 
                     tasks.forEach((task) => {
                         this.addToView(task); // Add 'this' to call the method
+                        console.log(task.description,"api subtask",task.subtasks);
                     });
 
-                    console.log(response.data.tasks);
+                    console.log("api task",response.data.tasks);
+                    console.log("this",this.tasks);
                 } catch (error) {
                     console.error(error);
                 }
             },
-//done
+            //done
             async deleteTask(index) {
                 try {
                     const taskId = this.tasks[index].id; // Get the task ID
@@ -396,15 +398,15 @@
                     console.error(error);
                 }
             },
-
-
+        
             //done
             async deleteSubtask(index, subindex) {
                 try {
                     const taskId = this.tasks[index].id;
                     const subtaskID = this.tasks[index].subTasks[subindex].id
 
-                    const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {                        headers: {
+                    const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {                        
+                        headers: {
                             auth_token: my_token
                         }
                     })
