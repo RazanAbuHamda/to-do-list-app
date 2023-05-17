@@ -50,6 +50,7 @@
                             id="email" 
                             v-model="email"
                             class="form-control form-control-lg" 
+                            required
                         />
                         <label class="form-label" for="typeEmailX">Email</label>
                     </div>
@@ -60,10 +61,10 @@
                             id="password" 
                             v-model="password"
                             class="form-control form-control-lg"
+                            required
                         />
                         <label class="form-label" for="typePasswordX">Password</label>
                     </div>
-
                     
                     <button type="submit" class="btn btn-outline-dark btn-lg px-5">Login</button>
                     <br><br>
@@ -94,15 +95,17 @@
       data(){
         return{          
             email : null,
-            password : null          
+            password : null,            
+            error: false,
+            errMsg: "Incorrect username or password"
         }
       },
       methods:{
-        validateUser(e){          
-          try{
+        validateUser(e){   
+          // TODO: handle errors       
             axios.post("http://localhost:3000/api/user/login/", {
-              email:this.email, 
-              password:this.password
+              email : this.email, 
+              password : this.password
             })
             .then((result) => {
               // decode the token for later use
@@ -110,18 +113,14 @@
               // save nesseccary data in local storage
               localStorage.setItem('token', result.data)
               localStorage.setItem('id', decoded._id)
-              // console.log(result.data);
-              // console.log((decoded));
               
               window.location.href = 'http://localhost:8080/dashboard.html';
             })
             .catch(error => console.log(error))
             e.preventDefault();
-          }catch(e){
-            // through some error/warning
-            console.log(e);
-          }
-        },   
+
+        },  
+         
       } 
   
     })

@@ -40,36 +40,22 @@
                             <h2 class="fw-bold mb-2 text-uppercase">Signup</h2>
                             <p class="text-black-50 mb-5">Please enter your login and password!</p>
 
-                            <form action="login.html">
+                            <form @submit="validateSignup">
                                 <!-- 2 column grid layout with text inputs for the first and last names -->
                                 <div class="row mb-5 ">
 
                                     <!-- first name input -->
-                                    <div class="col">
-                                        <div class="form-outline">
+                                    <div class="form-outline mb-5">                                   
                                             <input
                                                     type="text"
                                                     id="fname"
                                                     v-model="name"
                                                     class="form-control form-control-lg"
+                                                    required
                                             />
                                             <label class="form-label" for="form3Example1">First name</label>
                                         </div>
-                                    </div>
-
-                                    <!-- last name input -->
-                                    <div class="col">
-                                        <div class="form-outline">
-                                            <input
-                                                    type="text"
-                                                    id="lname"
-                                                    v-model="lname"
-                                                    class="form-control form-control-lg"
-                                            />
-                                            <label class="form-label" for="form3Example2
-">Last name</label>
-                                        </div>
-                                    </div>                            </div>
+                                    
 
                                 <!-- Email input -->
                                 <div class="form-outline mb-5">
@@ -78,6 +64,7 @@
                                             id="email"
                                             v-model="email"
                                             class="form-control form-control-lg"
+                                            required
                                     />
                                     <label class="form-label" for="form3Example3">Email address</label>
                                 </div>
@@ -89,11 +76,12 @@
                                             id="password"
                                             v-model="password"
                                             class="form-control form-control-lg"
+                                            required
                                     />
                                     <label class="form-label" for="form3Example4">Password</label>
                                 </div>
 
-                                <button @click="validateSignup" class="btn btn-outline-dark btn-lg px-5">Signup</button>
+                                <button type="submit" class="btn btn-outline-dark btn-lg px-5">Signup</button>
                                 <br><br>
 
                             </form>
@@ -121,23 +109,29 @@
             return {
                 name: null,
                 email: null,
-                password: null
+                password: null,
+                error: false,
+                errDetails: ''
             };
         },
         methods: {
             async validateSignup() {
                 try {
+                    // TODO: handle thisss
                     const response = await axios.post("http://localhost:3000/api/user/register/", {
                         name: this.name,
                         email: this.email,
                         password: this.password
                     });
-                    const decoded = jwt_decode(response.data);
-                    console.log(decoded);
-                    window.location.href = 'http://localhost:8080/index.html';
+                    // const decoded = jwt_decode(response.data);
+                    // console.log(decoded);
+                    this.error = false
+                    window.location.href = 'http://localhost:8080';
 
                 } catch (error) {
-                    console.error(error);
+                    console.log(error);
+                    this.error = true;
+                    this.errDetails = error                
                 }
             }
         },

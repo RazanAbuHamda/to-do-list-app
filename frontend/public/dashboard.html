@@ -54,8 +54,24 @@
 <!-- jQuery UI -->
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-<section class="vh-100">
-    <div class="container py-5 h-100" id="to-do-list">
+<script>
+    const my_token = localStorage.getItem('token');
+    const my_id = localStorage.getItem('id');
+    console.log(my_token);
+        if (my_token === null) {
+          window.location.href = 'http://localhost:8080';
+        }
+    </script>
+<section class="vh-100" id="to-do-list">
+    <div class="d-flex justify-content-center">
+        <div></div>
+        <div class="ms-auto">                  
+            <button type="button" class="btn btn-primary" @click="logout()">
+                Logout
+            </button>
+        </div>
+      </div>
+    <div class="container py-5 h-100">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col">
                 <div class="card" id="list1" style="border-radius: .75rem; background-color: #eff1f2;">
@@ -271,13 +287,7 @@
 <!-- import axios -->
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <!-- import local jwt-decode library -->
-<script src="./js/jwt-decode.js"></script>
 
-<script>
-    // token and id from localstorage
-    const my_token = localStorage.getItem('token');
-    const my_id = localStorage.getItem('id');
-</script>
 <script>
     $(function () {
 
@@ -338,7 +348,7 @@
             addToView(task) {
                 this.tasks.push({
                     id: task._id,
-                    user_id: task.user_id,
+                    user_id : task.user_id,
                     words: task.description,
                     done: task.done,
                     newValue: '',
@@ -372,38 +382,17 @@
                     console.error(error);
                 }
             },
-            //done
+//done
             async deleteTask(index) {
                 try {
                     const taskId = this.tasks[index].id; // Get the task ID
-                    const response = await axios.delete(`http://localhost:3000/api/task/delete/${taskId}`, {
+                    const response = await axios.delete(`http://localhost:3000/api/task/${taskId}`, {
                         headers: {
                             auth_token: my_token
                         }
-                    });
-                    this.tasks = this.tasks.filter(task => task.id !== taskId); // Remove task from task array
-                } catch (error) {
-                    console.error(error);
-                }
-            },
-
-
-            //done
-            async deleteSubtask(index, subindex) {
-
-                try {
-                    const taskId = this.tasks[index].id;
-                    const subtaskID = this.tasks[index].subTasks[subindex].id
-
-                    const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {
-                        headers: {
-                            auth_token: my_token
-                        }
-                    })
-
-                        .then(response => {
-                            this.tasks[index].subTasks = this.tasks.subTasks.filter(subtask => subtask.id !== subtaskID)
-                        }); //remove tasks from task array
+                    }).then(response => {
+                        this.tasks = this.tasks.filter(task => task.id !== taskId)
+                    }); //remove tasks from task array
 
                     this.tasks.splice(index, 1);
                     // this.updateTasks();
@@ -412,6 +401,30 @@
                 }
             },
 
+
+            //done
+           async  deleteSubtask(index, subIndex){         
+            try {
+               const taskId = this.tasks[index].id; 
+               const subtaskID = this.tasks[index].subtasks[subIndex].id
+
+                const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {
+                        headers: {
+                            auth_token: my_token
+                        }
+                    })
+                    
+                    .then(response => {
+                        this.tasks.subtasks = this.tasks.subtasks.filter(subtask => subtask.id !== subtaskID)
+                    }); //remove tasks from task array
+
+                    this.tasks.splice(index, 1);
+                    // this.updateTasks();
+            } catch (error) {
+                console.error(error);
+            }
+            },
+        
             editTask: function (index) {
                 this.tasks[index].editMode = true;
             },
@@ -425,46 +438,33 @@
                 this.tasks[parentIndex].subTasks[childIndex].txt = this.tasks[parentIndex].subTasks[childIndex].subTaskEditedValue;
                 this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = false;
 
-                // add changes to DB
+         // add changes to DB 
                 const taskid = this.tasks[parentIndex].id
                 const subtaskid = this.tasks[parentIndex].subtasks[childIndex].id
 
-                axios.put(`http://localhost:3000/api/update/${taskid}/${subtaskid}`,
-                    {desacription: subTaskEditedValue})//subtaskeditedvalue
-                then(() => {
-                    this.editSubtask()
-                }).catch((error) => {
-                    console.error(error);
-                });
+                axios.put(`http://localhost:3000/api/update/${taskid}/${subtaskid}`, 
+                {desacription : subTaskEditedValue })//subtaskeditedvalue
+                then(()=>{
+                        this.editSubtask()
+                    }).catch((error) => {
+                        console.error(error);
+                    });
 
             },
-
+          
             saveEditedTask(index) {
-                try {
-                    const taskId = this.tasks[index].id;
-                    const updatedDescription = this.tasks[index].newValue;
+                this.tasks[index].words = this.newValue;
+                this.tasks[index].editMode = false;
 
-                    axios.put(`http://localhost:3000/api/task/update/${taskId}`, {
-                        description: updatedDescription
-                    }, {
-                        headers: {
-                            auth_token: my_token
-                        }
+                const taskId = this.tasks[index]._id;
+                axios.put(`http://localhost:3000/api/update/${taskId}`, {words: this.newValue})
+                    .then(() => {
+                        this.updateTasks();
                     })
-                        .then(() => {
-                            this.tasks[index].words = updatedDescription;
-                            this.editTask(index);
-                            window.location.reload(); // إعادة تحميل الصفحة
-                        })
-                        .catch((error) => {
-                            console.error(error);
-                        });
-                } catch (error) {
-                    console.error(error);
-                }
+                    .catch((error) => {
+                        console.error(error);
+                    });
             },
-
-
             checkCompletedTask(index) {
                 const taskId = this.tasks[index]._id;
                 const isChecked = !this.tasks[index].done;
@@ -479,7 +479,7 @@
                                 this.completedTasks.splice(completedIndex, 1);
                             }
                         }
-                        // this.updateTasks();
+                        this.updateTasks();
                     })
                     .catch((error) => {
                         console.error(error);
@@ -504,7 +504,8 @@
             //done 
             async addSubtask(index) {
                 try {
-                    const taskID = this.tasks.index[id]
+                    const taskID = this.tasks[index].id;
+                    console.log(taskID);
                     const response = await axios.post(`http://localhost:3000/api/subtask/insert/${taskID}`, {
                         description: this.subTaskTxt,
                     }, {
@@ -512,34 +513,33 @@
                             auth_token: my_token
                         },
                     });
-                    //response : task
-                    //to add the last subtask to subtasks array to display in vue :
-                    this.tasks[index].subTasks.push(response.data.subTasks[response.data.subTasks.length - 1])
+                //response : task 
+            //to add the last subtask to subtasks array to display in vue :
+                this.tasks[index].subTasks.push(response.data.subtasks[response.data.subtasks.length-1])
 
                     console.log(response.data);
                 } catch (error) {
                     console.error(error);
                 }
-                /*
-                              this.tasks[index].subTasks.push({
-                                    parentId: index,
-                                    id: this.subTaskId,
-                                    txt: this.tasks[index].subTaskTxt,
-                                    date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
-                                    done: this.subTaskDone,
-                                    cancel: this.subTaskCancel,
-                                    subTaskEditMode: false,
-                                    subTaskEditedValue: '',
-                                });
-                */
-                /*
-                                this.tasks[index].subTaskTxt = '';
-                                this.subTaskId++;
-                  */
+/*
+              this.tasks[index].subTasks.push({
+                    parentId: index,
+                    id: this.subTaskId,
+                    txt: this.tasks[index].subTaskTxt,
+                    date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
+                    done: this.subTaskDone,
+                    cancel: this.subTaskCancel,
+                    subTaskEditMode: false,
+                    subTaskEditedValue: '',
+                });
+*/
+/*
+                this.tasks[index].subTaskTxt = '';
+                this.subTaskId++;
+  */
             },
-
+            
             sortAccordingToAddedDate() {
-
                 return this.tasks.sort(
                     (taskA, taskB) => Number(taskA.date) - Number(taskB.date),
                 );
@@ -550,136 +550,145 @@
                     (taskA, taskB) => Number(taskA.completionDate) - Number(taskB.completionDate),
                 );
             },
-        },
-        computed:
-    {
-        filterTasks: function () {
-            if (this.selectedFilter !== '') {
-                switch (this.selectedFilter) {
-                    case "1":
-                        return this.tasks;
-                    case "2":
-                        return this.completedTasks;
-                    case "3":
-                        return this.tasks.filter(task => !task.done);
-                    case "4":
-                        return this.canceledTasks;
-                    default:
-                        return this.tasks;
+            async logout(){
+                try {
+                    const response = await axios.post('http://localhost:3000/api/user/logout', {
+                    headers: {
+                        auth_token: my_token
+                    }
+                });   
+                if (response.data == "ok") {
+                    localStorage.clear();
+                    window.location.href = "http://localhost:8080"
+                } else {
+                    console.log("byee");                    
                 }
-            } else {
-                switch (this.selectedSorting) {
-                    case "1":
-                        return this.sortAccordingToAddedDate();
-                    case "2":
-                        return this.sortAccordingToCompletedDate();
-                    default:
-                        return this.tasks;
+
+                } catch (error) {
+                    // console.log(error);
                 }
-            }
+            },
+        },        
+        computed: {
+            filterTasks: function () {
+                if (this.selectedFilter !== '') {
+                    switch (this.selectedFilter) {
+                        case "1":
+                            return this.tasks;
+                        case "2":
+                            return this.completedTasks;
+                        case "3":
+                            return this.tasks.filter(task => !task.done);
+                        case "4":
+                            return this.canceledTasks;
+                        default:
+                            return this.tasks;
+                    }
+                } else {
+                    switch (this.selectedSorting) {
+                        case "1":
+                            return this.sortAccordingToAddedDate();
+                        case "2":
+                            return this.sortAccordingToCompletedDate();
+                        default:
+                            return this.tasks;
+                    }
+                }
 
-        }
-    ,
-        completionPercentage()
-        {
-            return this.completePercent
-            // var totalTasks = this.tasks.length;
-            // var totalSubtasks = this.tasks.reduce((acc, task) => acc + task.subTasks.length, 0);
-            // var completedTasks = 0;
-            // var completedSubtasks = 0;
+            },
+            completionPercentage() {
+                return this.completePercent
+                // var totalTasks = this.tasks.length;
+                // var totalSubtasks = this.tasks.reduce((acc, task) => acc + task.subTasks.length, 0);
+                // var completedTasks = 0;
+                // var completedSubtasks = 0;
 
-            // for (let i = 0; i < this.tasks.length; i++) {
-            //     if (this.tasks[i].done) {
-            //         completedTasks++;
-            //         completedSubtasks += this.tasks[i].subTasks.length;
-            //     }else{
-            //         for (let n = 0; n < this.tasks[i].subTasks.length; n++) {
-            //             if (this.tasks[i].subTasks[n].subTaskDone) {
-            //                 completedSubtasks++;
-            //             }
-            //         }
-            //     }
-            // }
-            // var total = totalTasks + totalSubtasks;
-            // var completed = completedTasks + completedSubtasks;
+                // for (let i = 0; i < this.tasks.length; i++) {
+                //     if (this.tasks[i].done) {
+                //         completedTasks++;
+                //         completedSubtasks += this.tasks[i].subTasks.length;
+                //     }else{
+                //         for (let n = 0; n < this.tasks[i].subTasks.length; n++) {
+                //             if (this.tasks[i].subTasks[n].subTaskDone) {
+                //                 completedSubtasks++;
+                //             }
+                //         }
+                //     }
+                // }
+                // var total = totalTasks + totalSubtasks;
+                // var completed = completedTasks + completedSubtasks;
 
-            // if (total === 0) {
-            //     return 0;
-            // } else {
-            //         return Math.round((completed / total) * 100);
-            //     }
-        }
-    ,
-        completionInCurrentDayPercentage()
-        {
-            const today = new Date();
-            let totalTasksInDay = 0;
-            let totalSubtasksInDay = 0;
-            let completedTasks = 0;
-            let completedSubtasks = 0;
+                // if (total === 0) {
+                //     return 0;
+                // } else {
+                //         return Math.round((completed / total) * 100);
+                //     }
+            },
+            completionInCurrentDayPercentage() {
+                const today = new Date();
+                let totalTasksInDay = 0;
+                let totalSubtasksInDay = 0;
+                let completedTasks = 0;
+                let completedSubtasks = 0;
 
-            for (let i = 0; i < this.tasks.length; i++) {
-                const taskDate = new Date(this.tasks[i].date);
-                if (taskDate.getDate() === today.getDate() && taskDate.getMonth() === today.getMonth() && taskDate.getFullYear() === today.getFullYear()) {
-                    totalTasksInDay++;
-                    totalSubtasksInDay = this.tasks.reduce((acc, task) => acc + task.subTasks.length, 0);
+                for (let i = 0; i < this.tasks.length; i++) {
+                    const taskDate = new Date(this.tasks[i].date);
+                    if (taskDate.getDate() === today.getDate() && taskDate.getMonth() === today.getMonth() && taskDate.getFullYear() === today.getFullYear()) {
+                        totalTasksInDay++;
+                        totalSubtasksInDay = this.tasks.reduce((acc, task) => acc + task.subTasks.length, 0);
 
-                    if (this.tasks[i].done) {
-                        completedTasks++;
-                        completedSubtasks += this.tasks[i].subTasks.length;
-                    } else {
-                        for (let n = 0; n < this.tasks[i].subTasks.length; n++) {
-                            // const subTaskDate = new Date(this.tasks[i].subTasks[n].date);
-                            // if (taskDate.getDate() === today.getDate() && taskDate.getMonth() === today.getMonth() && taskDate.getFullYear() === today.getFullYear()) {
-                            //     totalSubtasksInDay++;
-                            if (this.tasks[i].subTasks[n].subTaskDone) {
-                                completedSubtasks++;
+                        if (this.tasks[i].done) {
+                            completedTasks++;
+                            completedSubtasks += this.tasks[i].subTasks.length;
+                        } else {
+                            for (let n = 0; n < this.tasks[i].subTasks.length; n++) {
+                                // const subTaskDate = new Date(this.tasks[i].subTasks[n].date);
+                                // if (taskDate.getDate() === today.getDate() && taskDate.getMonth() === today.getMonth() && taskDate.getFullYear() === today.getFullYear()) {
+                                //     totalSubtasksInDay++;
+                                if (this.tasks[i].subTasks[n].subTaskDone) {
+                                    completedSubtasks++;
+                                }
+                                // }
+
                             }
-                            // }
-
                         }
                     }
                 }
-            }
-            // console.log("completedSubtasks",completedSubtasks);
-            // console.log("completedTasks",completedTasks);
-            // console.log("totalTasksInDay",totalTasksInDay);
-            // console.log("totalSubtasksInDay",totalSubtasksInDay);
+                // console.log("completedSubtasks",completedSubtasks);
+                // console.log("completedTasks",completedTasks);
+                // console.log("totalTasksInDay",totalTasksInDay);
+                // console.log("totalSubtasksInDay",totalSubtasksInDay);
 
-            if (totalTasksInDay === 0) {
-                return 0;
-            }
-            totalCompleted = completedTasks + completedSubtasks;
-            total = totalSubtasksInDay + totalTasksInDay;
-            return Math.round((totalCompleted / total) * 100);
-        }
-    ,
-        isPastDue: function () {
-            for (let i = 0; i < this.tasks.length; i++) {
-                if (!this.tasks[i].done && this.tasks[i].reminder - this.tasks[i].date) {
-                    this.tasks[i].cancel = !this.tasks[i].cancel;
-                    this.canceledTasks.push(this.tasks[i]);
-                } else {
-                    this.canceledTasks.splice(this.tasks[i], 1);
+                if (totalTasksInDay === 0) {
+                    return 0;
                 }
+                totalCompleted = completedTasks + completedSubtasks;
+                total = totalSubtasksInDay + totalTasksInDay;
+                return Math.round((totalCompleted / total) * 100);
             }
-        }
-    ,
+            ,
+            isPastDue: function () {
+                for (let i = 0; i < this.tasks.length; i++) {
+                    if (!this.tasks[i].done && this.tasks[i].reminder - this.tasks[i].date) {
+                        this.tasks[i].cancel = !this.tasks[i].cancel;
+                        this.canceledTasks.push(this.tasks[i]);
+                    } else {
+                        this.canceledTasks.splice(this.tasks[i], 1);
+                    }
+                }
+            },
 
-    }
-    ,
+        },
+        mounted() {
+            this.fetchTasks();
+            // this.authenticateUser();
+            // //هاي عملتها عشان كل دقيقة تستدعي الميثود الي بتفحص هل مر يوم كامل على المهمة عشان ألغيها ؟
+            // setInterval(this.isPastDue, 60000); // call getCurrentTime every minute
+            // $('.task-list').sortable();
 
-    mounted()
-    {
-        this.fetchTasks();
-        // this.authenticateUser();
-        // //هاي عملتها عشان كل دقيقة تستدعي الميثود الي بتفحص هل مر يوم كامل على المهمة عشان ألغيها ؟
-        // setInterval(this.isPastDue, 60000); // call getCurrentTime every minute
-        // $('.task-list').sortable();
-
-    }
-    ,
+        },
     })
+
 
 
 </script>
