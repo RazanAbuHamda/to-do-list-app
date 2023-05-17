@@ -402,8 +402,10 @@
                         headers: {
                             auth_token: my_token
                         }
-                    }).then(response => {
-                        this.tasks = this.tasks.filter(task => task.id !== taskId)
+                    })
+                    
+                    .then(response => {
+                        this.tasks.subtasks = this.tasks.subtasks.filter(subtask => subtask.id !== subtaskID)
                     }); //remove tasks from task array
 
                     this.tasks.splice(index, 1);
@@ -432,11 +434,12 @@
                 this.tasks[parentIndex].subTasks[childIndex].txt = this.tasks[parentIndex].subTasks[childIndex].subTaskEditedValue;
                 this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = false;
 
-
+         // add changes to DB 
                 const taskid = this.tasks[parentIndex].id
                 const subtaskid = this.tasks[parentIndex].subtasks[childIndex].id
 
-                axios.post(`http://localhost:3000/api/update/${taskid}/${subtaskid}`).
+                axios.put(`http://localhost:3000/api/update/${taskid}/${subtaskid}`, 
+                {desacription : subTaskEditedValue })//subtaskeditedvalue
                 then(()=>{
                         this.editSubtask()
                     }).catch((error) => {
@@ -444,6 +447,7 @@
                     });
 
             },
+          
             saveEditedTask(index) {
                 this.tasks[index].words = this.newValue;
                 this.tasks[index].editMode = false;
