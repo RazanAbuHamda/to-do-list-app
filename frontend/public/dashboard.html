@@ -403,19 +403,20 @@
             async deleteSubtask(index, subindex) {
                 try {
                     const taskId = this.tasks[index].id;
-                    const subtaskID = this.tasks[index].subTasks[subindex].id
+                    const subtaskID = this.tasks[index].subTasks[subindex]._id
 
-                    const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {                        
+                    const response = await axios.delete(`http://localhost:3000/api/subtask/delete/${taskId}/${subtaskID}`, {                        
                         headers: {
                             auth_token: my_token
                         }
-                    })
-                    
+                    })                    
                     .then(response => {
-                            this.tasks[index].subTasks = this.tasks.subTasks.filter(subtask => subtask.id !== subtaskID)
+                            // this.tasks[index].subTasks = this.tasks.subTasks.filter(subtask => subtask.id !== subtaskID)
+                            //remove tasks from task array
+                            this.tasks.splice(index, 1);
+                            window.location.reload();
                         }); 
-                    //remove tasks from task array
-                    this.tasks.splice(index, 1);
+                    
                     // this.updateTasks();
                 } catch (error) {
                     console.error(error);
