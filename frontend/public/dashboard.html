@@ -392,11 +392,11 @@
 
 
             //done
-           async  deleteSubtask(index){
+           async  deleteSubtask(index,subindex){
             
             try {
                const taskId = this.tasks[index].id; 
-               const subtaskID = this.tasks[index].subtasks[index].id
+               const subtaskID = this.tasks[index].subTasks[subindex].id
 
                 const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {
                         headers: {
@@ -405,7 +405,7 @@
                     })
                     
                     .then(response => {
-                        this.tasks.subtasks = this.tasks.subtasks.filter(subtask => subtask.id !== subtaskID)
+                        this.tasks[index].subTasks = this.tasks.subTasks.filter(subtask => subtask.id !== subtaskID)
                     }); //remove tasks from task array
 
                     this.tasks.splice(index, 1);
@@ -500,7 +500,7 @@
             //done 
             async addSubtask(index) {
                 try {
-                    const taskID = this.tasks[index]._id
+                    const taskID = this.tasks.index[id]
                     const response = await axios.post(`http://localhost:3000/api/subtask/insert/${taskID}`, {
                         description: this.subTaskTxt,
                     }, {
@@ -510,7 +510,7 @@
                     });
             //response : task 
            //to add the last subtask to subtasks array to display in vue :
-            this.tasks[index].subTasks.push(response.data.subtasks[response.data.subtasks.length-1])
+            this.tasks[index].subTasks.push(response.data.subTasks[response.data.subTasks.length-1])
 
                     console.log(response.data);
                 } catch (error) {
@@ -656,6 +656,7 @@
             },
 
         },
+     
         mounted() {
             this.fetchTasks();
             // this.authenticateUser();
