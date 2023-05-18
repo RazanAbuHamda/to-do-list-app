@@ -103,8 +103,7 @@
                             </div>
                         </div>
                         <p>Completion percentage: {{ this.completionPercentage }}%</p>
-<!--                        <p>Completion in current day percentage: {{ completionInCurrentDayPercentage }}%</p>-->
-
+                        <!--                        <p>Completion in current day percentage: {{ completionInCurrentDayPercentage }}%</p>-->
                         <hr class="my-4">
 
                         <div class="d-flex justify-content-end align-items-center mb-4 pt-2 pb-3">
@@ -150,8 +149,8 @@
                                         </div>
                                     </li>
                                     <li class="list-group-item px-3 py-1 d-flex align-items-center flex-grow-1 border-0 bg-transparent"
-                                        v-bind:style="{ 'background-color': task.done ? completedColor : '' }">
-                                        <p class="lead fw-normal mb-0" v-if="!task.editMode">{{ task.words }}</p>
+                                       v-bind:style="{ 'background-color': task.completedPercentage === 100 ? completedColor : '' }">
+                                    <p class="lead fw-normal mb-0" v-if="!task.editMode"  v-if = "!isPastDue(index)">{{ task.words }}</p>
                                         <div v-else class="d-flex flex-row justify-content-end mb-1">
                                             <input class="form-control form-control-lg" v-model="task.newValue"
                                                    :placeholder="task.words"/>
@@ -228,7 +227,7 @@
                                                     v-bind:style="{ 'background-color': task.subTasks[subIndex].subTaskDone ? completedColor : '' }">
                                                     <p class="lead fw-normal mb-0"
                                                        v-if="!task.subTasks[subIndex].subTaskEditMode">
-                                                        {{ task.subTasks[subIndex].description }}</p>
+                                                        {{ task.subTasks[subIndex].txt }}</p>
                                                     <div v-else>
                                                         <input
                                                                 type="text"
@@ -301,7 +300,6 @@
 
 </script>
 <script type="text/javascript">
-
     var vm = new Vue({
         el: "#to-do-list",
         data: {
@@ -321,7 +319,7 @@
             subTaskDone: false,
             subTaskCancel: false,
             subtaskInput: 0,
-            completePercent: 0,
+            completedPercentage: 0,
             completedColor: "green",
 
         },
@@ -342,6 +340,7 @@
                 } catch (error) {
                     console.error(error);
                 }
+                this.tasks = [];
                 this.fetchTasks();
                 this.taskText = '';
                 this.num++;
@@ -357,33 +356,72 @@
                     date: task.createdAt, //date store in DB
                     editMode: this.editMode,
                     reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
-                    subTasks: task.subtasks,
+                    subTasks: [],
                     subTaskTxt: '',
                     completionDate: 0,
-                    completionPercentage:0,
+                    completionPercentage:task.completionPercentage,
                 });
                 this.num++;
             },
+            //done 
+            async addSubtask(index) {
+            try {
+                const subtastxt = this.tasks[index].subTaskTxt;
+                const taskID = this.tasks[index].id;
+                console.log(taskID);
+                const response = await axios.post(`http://localhost:3000/api/subtask/insert/${taskID}`, {
+                    description: subtastxt,
+                }, {
+                    headers: {
+                        auth_token: my_token
+                    },
+                });    
+                this.tasks = [];
+                this.fetchTasks();               
+                // window.location.reload();
+            } catch (error) {
+                console.error(error);
+            }                
+            this.tasks[index].subTaskTxt = '';
+            },
+            addSubtaskToView(index, subtask) {
+                this.tasks[index].subTasks.push({
+                    parentId: index,
+                    id: subtask._id,
+                    txt: subtask.description,
+                    date: subtask.date.slice(0, 10).replace(/-/g, '/'),
+                    done: this.subTaskDone,
+                    cancel: this.subTaskCancel,
+                    subTaskEditMode: false,
+                    subTaskEditedValue: '',
+            });
+                this.subTaskId++;
+            },
+            
             async fetchTasks() {
                 try {
-
                     const response = await axios.get('http://localhost:3000/api/task/tasks', {
                         headers: {
                             auth_token: my_token
                         }
                     });
-                    //هان بجك تحددي شو هاد؟؟؟؟؟
-                    this.completionPercentage =await response.data.OverallCompletionPercentage;
-                    console.log(response.data);
+                     //هان بجك تحددي شو هاد؟؟؟؟؟
+                     this.completionPercentage =await response.data.OverallCompletionPercentage;
+                    console.log(response.data);                    
                     const tasks = response.data.tasks;
+                    let parentIndex = 0;
 
                     tasks.forEach((task) => {
                         this.addToView(task); // Add 'this' to call the method
-                        console.log(task.description, "api subtask", task.subtasks);
+                        const subtasks = task.subtasks;
+                        // console.log("pindex", parentIndex, "subtasks", subtasks);
+                        subtasks.forEach((subtask) => {    
+                            this.addSubtaskToView(parentIndex, subtask); // Add 'this' to call the method
+                            // console.log("index", parentIndex,"api subtask",subtask);                            
+                        });
+                        // console.log(parentIndex, "how many per task")
+                        parentIndex++;
                     });
-
-                    console.log("api task", response.data.tasks);
-                    console.log("this", this.tasks);
                 } catch (error) {
                     console.error(error);
                 }
@@ -402,24 +440,23 @@
                     console.error(error);
                 }
             },
-
-            //done
-            async deleteSubtask(index, subindex) {
+           //done
+           async deleteSubtask(index, subindex) {
                 try {
                     const taskId = this.tasks[index].id;
                     const subtaskID = this.tasks[index].subTasks[subindex].id
+                    console.log(`http://localhost:3000/api/subtask/delete/${taskId}/${subtaskID}`);
 
-                    const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {
+                    const response = await axios.delete(`http://localhost:3000/api/subtask/delete/${taskId}/${subtaskID}`, {                        
                         headers: {
                             auth_token: my_token
                         }
-                    })
-
-                        .then(response => {
-                            this.tasks[index].subTasks = this.tasks.subTasks.filter(subtask => subtask.id !== subtaskID)
-                        });
+                    });                 
+                    this.tasks[index].subTasks = this.tasks[index].subTasks.filter(subtask => subtask.id !== subtaskID)
+                    console.log(response.data);
+                    
                     //remove tasks from task array
-                    this.tasks.splice(index, 1);
+                    // this.tasks.splice(index, 1);
                     // this.updateTasks();
                 } catch (error) {
                     console.error(error);
@@ -431,30 +468,29 @@
             },
             editSubtask: function (parentIndex, childIndex) {
                 this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = true;
-
-
             },
             //modified
-            saveEditedSubtask: function (parentIndex, childIndex) {
-                this.tasks[parentIndex].subTasks[childIndex].txt = this.tasks[parentIndex].subTasks[childIndex].subTaskEditedValue;
-                this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = false;
+            async saveEditedSubtask(parentIndex, childIndex) {
                 const updatedSubTask = this.tasks[parentIndex].subTasks[childIndex].subTaskEditedValue;
+                const taskID = this.tasks[parentIndex].id;
+                const subtaskID = this.tasks[parentIndex].subTasks[childIndex].id;
 
-                // add changes to DB
-                const taskid = this.tasks[parentIndex].id
-                const subtaskid = this.tasks[parentIndex].subtasks[childIndex].id
-
-                axios.put(`http://localhost:3000/api/update/${taskid}/${subtaskid}`,
-                    {desacription:  updatedSubTask})//subtaskeditedvalue
-                then(() => {
-                    this.editSubtask()
-
-
-                }).catch((error) => {
-                    console.error(error);
-                });
+                try {
+                const response = await axios.put(`http://localhost:3000/api/subtask/update/${taskID}/${subtaskID}`,
+                    {
+                        description: updatedSubTask
+                    },{
+                        headers: {
+                        auth_token : my_token
+                    }}
+                    );
+                this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = false;                
+                this.tasks[parentIndex].subTasks[childIndex].txt = updatedSubTask;
+                }catch{(e) =>{
+                    console.log(e);
+                }
+                }
             },
-
             async saveEditedTask(index) {
                 // this.tasks[index].words = this.newValue;
                 // this.tasks[index].editMode = false;
@@ -481,16 +517,17 @@
                     console.error(error);
                 }
             },
-
-
-
-// done
+            // done
             async checkCompletedTask(index) {
                 const taskId = this.tasks[index].id;
                 const isChecked = this.tasks[index].done;
 
                 try {
-                    await axios.put(`http://localhost:3000/api/task/completedAllTasks/${taskId}`, { done: isChecked }, {
+                    await axios.put(`http://localhost:3000/api/task/completedAllTasks/${taskId}`,
+                        {
+                            done: isChecked,
+                            completedPercentage:100,
+                        }, {
                         headers: {
                             auth_token: my_token
                         }
@@ -499,12 +536,14 @@
                             if (isChecked) {
                                 this.completedTasks.push(this.tasks[index]);
                                 this.tasks[index].done = true;
+                                this.tasks[index].completedPercentage = 100;
                             } else {
                                 const completedIndex = this.completedTasks.findIndex((task) => task._id === taskId);
                                 if (completedIndex !== -1) {
                                     this.completedTasks.splice(completedIndex, 1);
                                 }
                             }
+                            this.tasks = [];
                             this.fetchTasks();
                             // window.location.reload();
                         })
@@ -517,10 +556,6 @@
                     console.error(error);
                 }
             },
-
-
-
-
 
 
             checkCompletedSubTask(parentIndex, childIndex) {
@@ -539,42 +574,6 @@
                 this.tasks = this.filteredTasks();
             },
 
-            //done
-            async addSubtask(index) {
-                try {
-                    const taskID = this.tasks[index].id;
-                    console.log(taskID);
-                    const response = await axios.post(`http://localhost:3000/api/subtask/insert/${taskID}`, {
-                        description: this.subTaskTxt,
-                    }, {
-                        headers: {
-                            auth_token: my_token
-                        },
-                    });
-                    //response : task
-                    //to add the last subtask to subtasks array to display in vue :
-                    this.tasks[index].subTasks.push(response.data.subTasks[response.data.subTasks.length - 1])
-                    console.log(response.data);
-                } catch (error) {
-                    console.error(error);
-                }
-                /*
-                              this.tasks[index].subTasks.push({
-                                    parentId: index,
-                                    id: this.subTaskId,
-                                    txt: this.tasks[index].subTaskTxt,
-                                    date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
-                                    done: this.subTaskDone,
-                                    cancel: this.subTaskCancel,
-                                    subTaskEditMode: false,
-                                    subTaskEditedValue: '',
-                                });
-                */
-                /*
-                                this.tasks[index].subTaskTxt = '';
-                                this.subTaskId++;
-                  */
-            },
 
             sortAccordingToAddedDate() {
                 return this.tasks.sort(
@@ -582,7 +581,6 @@
                 );
             },
             sortAccordingToCompletedDate() {
-
                 return this.completedTasks.sort(
                     (taskA, taskB) => Number(taskA.completionDate) - Number(taskB.completionDate),
                 );
@@ -598,7 +596,7 @@
                         localStorage.clear();
                         window.location.href = "http://localhost:8080"
                     } else {
-                        console.log("byee");
+                        // console.log("byee");
                     }
 
                 } catch (error) {
@@ -721,15 +719,33 @@
                 total = totalSubtasksInDay + totalTasksInDay;
                 return Math.round((totalCompleted / total) * 100);
             },
-            isPastDue: function () {
+         
+         
+            //done
+            isPastDue: function (index) {
+                const day = 24 * 60 * 60 * 1000
+                const taskDate = new Date(this.tasks[index].date)
+                const currentDate = new Date()
+// اذا مر عليها اكتر من يوم يحزفها من الdb 
+                if (currentDate - taskDate > day){
+
+                    deleteTask(index)
+                    return true
+                }
+
+                return false
+
+                /*
                 for (let i = 0; i < this.tasks.length; i++) {
                     if (!this.tasks[i].done && this.tasks[i].reminder - this.tasks[i].date) {
                         this.tasks[i].cancel = !this.tasks[i].cancel;
+ 
                         this.canceledTasks.push(this.tasks[i]);
                     } else {
                         this.canceledTasks.splice(this.tasks[i], 1);
                     }
                 }
+                */
             },
 
 
