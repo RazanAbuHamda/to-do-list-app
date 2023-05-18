@@ -176,16 +176,11 @@
                                             </a>
 
                                             <a href="#!" class="text-danger" data-mdb-toggle="tooltip"
-                                            title="cancel todo"
-                                            v-show = "task.softdelete == null"
-                                            @click.stop="cancelTask(index)">
-                                             <i class="fas fa-times me-3"></i>
-                                         </a>
-
-                            
-
-
-
+                                                title="cancel todo"
+                                                v-show = "task.softdelete == null"
+                                                @click.stop="cancelTask(index)">
+                                                <i class="fas fa-times me-3"></i>
+                                            </a>                          
                                         </div>
                                         <div class="text-end text-muted">
                                             <a href="#!" class="text-muted" data-mdb-toggle="tooltip"
@@ -265,6 +260,12 @@
                                                            title="Delete todo"
                                                            @click.stop="deleteSubtask(index, subIndex)">
                                                             <i class="fas fa-trash-alt me-3"></i>
+                                                        </a>
+                                                        <a href="#!" class="text-danger" data-mdb-toggle="tooltip"
+                                                            title="cancel todo"
+                                                            v-show = "task.softdelete == null"
+                                                            @click.stop="cancelSubtask(index, subIndex)">
+                                                            <i class="fas fa-times me-3"></i>
                                                         </a>
                                                     </div>
                                                     <div class="text-end text-muted">
@@ -363,7 +364,7 @@
                     id: task._id,
                     user_id: task.user_id,
                     words: task.description,
-                    done: task.done,
+                    done: task.completionPercentage,
                     newValue: '',
                     cancel: task.cancel,
                     date: task.createdAt, //date store in DB
@@ -372,7 +373,7 @@
                     subTasks: [],
                     subTaskTxt: '',
                     completionDate: 0,
-                    completionPercentage:task.completionPercentage,
+                    // completionPercentage:task.completionPercentage,
                     softdelete : task.softdelete
                 });
                 this.num++;
