@@ -182,6 +182,10 @@
                                              <i class="fas fa-times me-3"></i>
                                          </a>
 
+                            
+
+
+
                                         </div>
                                         <div class="text-end text-muted">
                                             <a href="#!" class="text-muted" data-mdb-toggle="tooltip"
@@ -369,6 +373,7 @@
                     subTaskTxt: '',
                     completionDate: 0,
                     completionPercentage:task.completionPercentage,
+                    softdelete : task.softdelete
                 });
                 this.num++;
             },
@@ -533,7 +538,7 @@
 
                 const taskId = this.tasks[index].id;
                 try{
-                await axios.put(`http://localhost:3000/api/subtask/cancelTask/${taskId}`,
+                await axios.put(`http://localhost:3000/api/task/cancelTask/${taskId}`,
                         {
                             softdelete: Date.now(),
                         }, {
