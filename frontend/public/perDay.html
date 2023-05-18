@@ -1,69 +1,91 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-
-<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body{
-            background: #6685b8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 150vh;
-        }
-        .container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 70px;
-        }
 
-        .chart {
-            padding: 2rem;
-            border: 1px solid;
-            border-radius: 1rem;
-            background: #251c35;
-            box-shadow: 0 0 16px rgba(0, 0, 0, 0.8);
-        }
-        
-    </style>
+<script>
+    const my_token = localStorage.getItem('token');
+    const my_id = localStorage.getItem('id');
+    console.log(my_token);
+    if (my_token === null) {
+        window.location.href = 'http://localhost:8080';
+    }
+</script>
+<body>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body{
+        background: #6685b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 150vh;
+    }
+    .container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 70px;
+    }
+
+    .chart {
+        padding: 2rem;
+        border: 1px solid;
+        border-radius: 1rem;
+        background: #251c35;
+        box-shadow: 0 0 16px rgba(0, 0, 0, 0.8);
+    }
+
+</style>
 <div class="container" style="height: 50%; width: 50%; align-items: center;">
-    <h3 style="color:#EEDAD9;font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; ">Tasks Completion Percentage Per Day</h4>
+    <h4 style="color:#EEDAD9;font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; ">Tasks Completion Percentage Per Day</h4>
     <div class="chart">
         <canvas id="myChart"></canvas>
     </div>
 </div>
+<!-- MDB -->
+<script type="text/javascript" src="js/mdb.min.js"></script>
+<!-- import axios -->
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-    const ctx = document.getElementById('myChart');
+    async function fetchData() {
+        try {
+            const response = await axios.get('http://localhost:3000/api/task/completionPerDay', {
+                headers: {
+                    auth_token: my_token
+                },
+            });
+            const averageCompletionRate = response.data.averageCompletionRatesPerDay[0].averageCompletionRate;
 
-new Chart(ctx, {
-  type: 'doughnut',
-  data: {
-    labels: ['Tasks Done', 'Tasks Left'],
-    datasets: [{
-    //   label: '# of Tasks',
-      data: [12, 19],
-      borderWidth: 1
-    }]
-  },
-  options: {
-    scales: {
-    //   y: {
-    //     beginAtZero: true
-    //   }
+            const ctx = document.getElementById('myChart');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Tasks Done', 'Tasks Left'],
+                    datasets: [{
+                        data: [averageCompletionRate, 100 - averageCompletionRate],
+                        borderWidth: 1,
+                        backgroundColor: ['#4CAF50', '#F44336']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        } catch (error) {
+            console.error(error);
+        }
     }
-  }
-});
+
+    fetchData();
 </script>
 </body>
 </html>

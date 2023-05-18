@@ -17,6 +17,13 @@ const subtaskSchema = mongoose.Schema({
     },
     default: 0
   },
+
+
+  editMode : {
+    type : Boolean,
+    default : false
+  } ,
+
   completionDate: { type: Date, default: null },
   softdelete: {
     type: Date,
