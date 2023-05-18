@@ -47,6 +47,11 @@
         background-color: #fe3939 !important;
     }
 
+    .completed {
+        background-color: #98fb98 !important;
+
+    }
+
 </style>
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -58,19 +63,19 @@
     const my_token = localStorage.getItem('token');
     const my_id = localStorage.getItem('id');
     console.log(my_token);
-        if (my_token === null) {
-          window.location.href = 'http://localhost:8080';
-        }
-    </script>
+    if (my_token === null) {
+        window.location.href = 'http://localhost:8080';
+    }
+</script>
 <section class="vh-100" id="to-do-list">
     <div class="d-flex justify-content-center">
         <div></div>
-        <div class="ms-auto">                  
+        <div class="ms-auto">
             <button type="button" class="btn btn-primary" @click="logout()">
                 Logout
             </button>
         </div>
-      </div>
+    </div>
     <div class="container py-5 h-100">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col">
@@ -102,8 +107,8 @@
                                 </div>
                             </div>
                         </div>
-                        <p>Completion percentage: {{ completionPercentage }}%</p>
-                        <p>Completion in current day percentage: {{ completionInCurrentDayPercentage }}%</p>
+                        <p>Completion percentage: {{ this.completionPercentage }}%</p>
+<!--                        <p>Completion in current day percentage: {{ completionInCurrentDayPercentage }}%</p>-->
 
                         <hr class="my-4">
 
@@ -150,7 +155,7 @@
                                         </div>
                                     </li>
                                     <li class="list-group-item px-3 py-1 d-flex align-items-center flex-grow-1 border-0 bg-transparent"
-                                        v-bind:style="{ 'background-color': task.done ? completedColor : '' }">
+                                        class = "taskClass">
                                         <p class="lead fw-normal mb-0" v-if="!task.editMode">{{ task.words }}</p>
                                         <div v-else class="d-flex flex-row justify-content-end mb-1">
                                             <input class="form-control form-control-lg" v-model="task.newValue"
@@ -206,7 +211,7 @@
                                              v-for="(subTask,subIndex) in task.subTasks">
                                             <ul class="list-group list-group-horizontal"
                                                 v-bind:class="
-                                                        [{'task-done': task.done}, 
+                                                        [{'task-done': task.done},
                                                         {'subtask-done': task.subTasks[subIndex].subTaskDone},
                                                         {'task-cancel': task.subTasks[subIndex].subTaskCancel}]">
 
@@ -321,7 +326,8 @@
             subTaskDone: false,
             subTaskCancel: false,
             subtaskInput: 0,
-            completePercent: 0
+            completePercent: 0,
+            completedColor: "green",
 
         },
         methods: {
@@ -348,17 +354,18 @@
             addToView(task) {
                 this.tasks.push({
                     id: task._id,
-                    user_id : task.user_id,
+                    user_id: task.user_id,
                     words: task.description,
                     done: task.done,
                     newValue: '',
                     cancel: task.cancel,
-                    date: new Date(),
+                    date: task.createdAt, //date store in DB
                     editMode: this.editMode,
                     reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
                     subTasks: task.subtasks,
                     subTaskTxt: '',
-                    completionDate: 0
+                    completionDate: 0,
+                    completionPercentage:0,
                 });
                 this.num++;
             },
@@ -370,16 +377,18 @@
                             auth_token: my_token
                         }
                     });
-                    this.completePercent = response.data.OverallCompletionPercentage;
+                    //هان بجك تحددي شو هاد؟؟؟؟؟
+                    this.completionPercentage =await response.data.OverallCompletionPercentage;
+                    console.log(response.data);
                     const tasks = response.data.tasks;
 
                     tasks.forEach((task) => {
                         this.addToView(task); // Add 'this' to call the method
-                        console.log(task.description,"api subtask",task.subtasks);
+                        console.log(task.description, "api subtask", task.subtasks);
                     });
 
-                    console.log("api task",response.data.tasks);
-                    console.log("this",this.tasks);
+                    console.log("api task", response.data.tasks);
+                    console.log("this", this.tasks);
                 } catch (error) {
                     console.error(error);
                 }
@@ -398,22 +407,22 @@
                     console.error(error);
                 }
             },
-        
+
             //done
             async deleteSubtask(index, subindex) {
                 try {
                     const taskId = this.tasks[index].id;
                     const subtaskID = this.tasks[index].subTasks[subindex].id
 
-                    const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {                        
+                    const response = await axios.delete(`http://localhost:3000/api/subtask/${taskId}/${subtaskID}`, {
                         headers: {
                             auth_token: my_token
                         }
                     })
-                    
-                    .then(response => {
+
+                        .then(response => {
                             this.tasks[index].subTasks = this.tasks.subTasks.filter(subtask => subtask.id !== subtaskID)
-                        }); 
+                        });
                     //remove tasks from task array
                     this.tasks.splice(index, 1);
                     // this.updateTasks();
@@ -421,7 +430,7 @@
                     console.error(error);
                 }
             },
-        
+
             editTask: function (index) {
                 this.tasks[index].editMode = true;
             },
@@ -434,35 +443,38 @@
             saveEditedSubtask: function (parentIndex, childIndex) {
                 this.tasks[parentIndex].subTasks[childIndex].txt = this.tasks[parentIndex].subTasks[childIndex].subTaskEditedValue;
                 this.tasks[parentIndex].subTasks[childIndex].subTaskEditMode = false;
+                const updatedSubTask = this.tasks[parentIndex].subTasks[childIndex].subTaskEditedValue;
 
-         // add changes to DB 
+                // add changes to DB
                 const taskid = this.tasks[parentIndex].id
                 const subtaskid = this.tasks[parentIndex].subtasks[childIndex].id
 
                 axios.put(`http://localhost:3000/api/update/${taskid}/${subtaskid}`,
-                    {desacription: subTaskEditedValue})//subtaskeditedvalue
+                    {desacription:  updatedSubTask})//subtaskeditedvalue
                 then(() => {
                     this.editSubtask()
+
+
                 }).catch((error) => {
                     console.error(error);
                 });
             },
-          
-            saveEditedTask(index) {
+
+            async saveEditedTask(index) {
                 // this.tasks[index].words = this.newValue;
                 // this.tasks[index].editMode = false;
                 try {
                     const taskId = this.tasks[index].id;
                     const updatedDescription = this.tasks[index].newValue;
 
-                    axios.put(`http://localhost:3000/api/task/update/${taskId}`, {
+                    await axios.put(`http://localhost:3000/api/task/update/${taskId}`, {
                         description: updatedDescription
                     }, {
                         headers: {
                             auth_token: my_token
                         }
-                    })  
-                    .then(() => {
+                    })
+                        .then(() => {
                             this.tasks[index].words = updatedDescription;
                             this.editTask(index);
                             window.location.reload();
@@ -472,29 +484,50 @@
                         });
                 } catch (error) {
                     console.error(error);
-                }                  
+                }
             },
+
+
+
+// done
             async checkCompletedTask(index) {
-                const taskId = this.tasks[index]._id;
-                const isChecked = !this.tasks[index].done;
+                const taskId = this.tasks[index].id;
+                const isChecked = this.tasks[index].done;
 
                 try {
-                    await axios.put(`http://localhost:3000/api/tasks/${taskId}`, { done: isChecked });
-
-                    if (isChecked) {
-                        this.completedTasks.push(this.tasks[index]);
-                    } else {
-                        const completedIndex = this.completedTasks.findIndex((task) => task._id === taskId);
-                        if (completedIndex !== -1) {
-                            this.completedTasks.splice(completedIndex, 1);
+                    await axios.put(`http://localhost:3000/api/task/completedAllTasks/${taskId}`, { done: isChecked }, {
+                        headers: {
+                            auth_token: my_token
                         }
-                    }
+                    })
+                        .then(() => {
+                            if (isChecked) {
+                                this.completedTasks.push(this.tasks[index]);
+                                this.tasks[index].done = true;
+                            } else {
+                                const completedIndex = this.completedTasks.findIndex((task) => task._id === taskId);
+                                if (completedIndex !== -1) {
+                                    this.completedTasks.splice(completedIndex, 1);
+                                }
+                            }
+                            this.fetchTasks();
+                            // window.location.reload();
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                        });
 
                     // this.updateTasks();
                 } catch (error) {
                     console.error(error);
                 }
             },
+
+
+
+
+
+
             checkCompletedSubTask(parentIndex, childIndex) {
                 isChecked = !this.tasks[parentIndex].subTasks[childIndex].done;
                 if (isChecked) {
@@ -511,7 +544,7 @@
                 this.tasks = this.filteredTasks();
             },
 
-            //done 
+            //done
             async addSubtask(index) {
                 try {
                     const taskID = this.tasks[index].id;
@@ -523,31 +556,31 @@
                             auth_token: my_token
                         },
                     });
-                         //response : task
+                    //response : task
                     //to add the last subtask to subtasks array to display in vue :
                     this.tasks[index].subTasks.push(response.data.subTasks[response.data.subTasks.length - 1])
                     console.log(response.data);
                 } catch (error) {
                     console.error(error);
                 }
-/*
-              this.tasks[index].subTasks.push({
-                    parentId: index,
-                    id: this.subTaskId,
-                    txt: this.tasks[index].subTaskTxt,
-                    date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
-                    done: this.subTaskDone,
-                    cancel: this.subTaskCancel,
-                    subTaskEditMode: false,
-                    subTaskEditedValue: '',
-                });
-*/
-/*
-                this.tasks[index].subTaskTxt = '';
-                this.subTaskId++;
-  */
+                /*
+                              this.tasks[index].subTasks.push({
+                                    parentId: index,
+                                    id: this.subTaskId,
+                                    txt: this.tasks[index].subTaskTxt,
+                                    date: new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
+                                    done: this.subTaskDone,
+                                    cancel: this.subTaskCancel,
+                                    subTaskEditMode: false,
+                                    subTaskEditedValue: '',
+                                });
+                */
+                /*
+                                this.tasks[index].subTaskTxt = '';
+                                this.subTaskId++;
+                  */
             },
-            
+
             sortAccordingToAddedDate() {
                 return this.tasks.sort(
                     (taskA, taskB) => Number(taskA.date) - Number(taskB.date),
@@ -559,91 +592,98 @@
                     (taskA, taskB) => Number(taskA.completionDate) - Number(taskB.completionDate),
                 );
             },
-            async logout(){
+            async logout() {
                 try {
                     const response = await axios.post('http://localhost:3000/api/user/logout', {
-                    headers: {
-                        auth_token: my_token
+                        headers: {
+                            auth_token: my_token
+                        }
+                    });
+                    if (response.data == "ok") {
+                        localStorage.clear();
+                        window.location.href = "http://localhost:8080"
+                    } else {
+                        console.log("byee");
                     }
-                });   
-                if (response.data == "ok") {
-                    localStorage.clear();
-                    window.location.href = "http://localhost:8080"
-                } else {
-                    console.log("byee");                    
-                }
 
                 } catch (error) {
                     // console.log(error);
                 }
             },
-        },        
-        computed:{
-        filterTasks: function () {
-            if (this.selectedFilter !== '') {
-                switch (this.selectedFilter) {
-                    case "1":
-                        return this.tasks;
-                    case "2":
-                        return this.completedTasks;
-                    case "3":
-                        return this.tasks.filter(task => !task.done);
-                    case "4":
-                        return this.canceledTasks;
-                    default:
-                        return this.tasks;
+        },
+        computed: {
+            filterTasks: function () {
+                if (this.selectedFilter !== '') {
+                    switch (this.selectedFilter) {
+                        case "1":
+                            return this.tasks;
+                        case "2":
+                            return this.completedTasks;
+                        case "3":
+                            return this.tasks.filter(task => !task.done);
+                        case "4":
+                            return this.canceledTasks;
+                        default:
+                            return this.tasks;
                     }
                 } else {
-                switch (this.selectedSorting) {
-                    case "1":
-                        return this.sortAccordingToAddedDate();
-                    case "2":
-                        return this.sortAccordingToCompletedDate();
-                    default:
-                        return this.tasks;
+                    switch (this.selectedSorting) {
+                        case "1":
+                            return this.sortAccordingToAddedDate();
+                        case "2":
+                            return this.sortAccordingToCompletedDate();
+                        default:
+                            return this.tasks;
+                    }
                 }
-            }
 
             },
             // completionPercentage() {
             //     return this.completePercent
-                // var totalTasks = this.tasks.length;
-                // var totalSubtasks = this.tasks.reduce((acc, task) => acc + task.subTasks.length, 0);
-                // var completedTasks = 0;
-                // var completedSubtasks = 0;
+            // var totalTasks = this.tasks.length;
+            // var totalSubtasks = this.tasks.reduce((acc, task) => acc + task.subTasks.length, 0);
+            // var completedTasks = 0;
+            // var completedSubtasks = 0;
 
-                // for (let i = 0; i < this.tasks.length; i++) {
-                //     if (this.tasks[i].done) {
-                //         completedTasks++;
-                //         completedSubtasks += this.tasks[i].subTasks.length;
-                //     }else{
-                //         for (let n = 0; n < this.tasks[i].subTasks.length; n++) {
-                //             if (this.tasks[i].subTasks[n].subTaskDone) {
-                //                 completedSubtasks++;
-                //             }
-                //         }
-                //     }
-                // }
-                // var total = totalTasks + totalSubtasks;
-                // var completed = completedTasks + completedSubtasks;
+            // for (let i = 0; i < this.tasks.length; i++) {
+            //     if (this.tasks[i].done) {
+            //         completedTasks++;
+            //         completedSubtasks += this.tasks[i].subTasks.length;
+            //     }else{
+            //         for (let n = 0; n < this.tasks[i].subTasks.length; n++) {
+            //             if (this.tasks[i].subTasks[n].subTaskDone) {
+            //                 completedSubtasks++;
+            //             }
+            //         }
+            //     }
+            // }
+            // var total = totalTasks + totalSubtasks;
+            // var completed = completedTasks + completedSubtasks;
 
-                // if (total === 0) {
-                //     return 0;
-                // } else {
-                //         return Math.round((completed / total) * 100);
-                //     }
+            // if (total === 0) {
+            //     return 0;
+            // } else {
+            //         return Math.round((completed / total) * 100);
+            //     }
             // },
             //done
-            async completionPercentage() {
-                try {
-                    const response = await axios.get('http://localhost:3000/api/task/taskCompletionPercentage/');
-                    this.completePercent = response.data.OverallCompletionPercentage;
-                    console.log(response.data);
-                    this.checkCompletedTask(index);
-                } catch (error) {
-                    console.error(error);
-                }
-            },
+            // async completionPercentage() {
+            //     try {
+            //         const response = await axios.get('http://localhost:3000/api/task/tasks/', {
+            //             headers: {
+            //                 auth_token: my_token
+            //             }
+            //         })
+            //             .then(() => {
+            //                 this.completePercent = response.data.tasks.overallCompletionPercentage;
+            //                 console.log(this.completePercent);
+            //                 this.checkCompletedTask(index);
+            //             }).catch((erorr) => {
+            //             })
+            //     } catch(error) {
+            //         console.error(error);
+            //     }
+            // },
             completionInCurrentDayPercentage() {
                 const today = new Date();
                 let totalTasksInDay = 0;
@@ -685,8 +725,7 @@
                 totalCompleted = completedTasks + completedSubtasks;
                 total = totalSubtasksInDay + totalTasksInDay;
                 return Math.round((totalCompleted / total) * 100);
-            }
-            ,
+            },
             isPastDue: function () {
                 for (let i = 0; i < this.tasks.length; i++) {
                     if (!this.tasks[i].done && this.tasks[i].reminder - this.tasks[i].date) {
@@ -698,17 +737,24 @@
                 }
             },
 
+            taskClass : function(){
+                return this.task.done ? 'completed' : ''
+            }
+
+
+
+
         },
-        mounted() {
+        mounted()
+        {
             this.fetchTasks();
             // this.authenticateUser();
-            // //هاي عملتها عشان كل دقيقة تستدعي الميثود الي بتفحص هل مر يوم كامل على المهمة عشان ألغيها ؟
             // setInterval(this.isPastDue, 60000); // call getCurrentTime every minute
             // $('.task-list').sortable();
 
-        },
+        }
+        ,
     })
-
 
 
 </script>
