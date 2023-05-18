@@ -47,11 +47,6 @@
         background-color: #fe3939 !important;
     }
 
-    .completed {
-        background-color: #98fb98 !important;
-
-    }
-
 </style>
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -155,7 +150,7 @@
                                         </div>
                                     </li>
                                     <li class="list-group-item px-3 py-1 d-flex align-items-center flex-grow-1 border-0 bg-transparent"
-                                        class = "taskClass">
+                                        v-bind:style="{ 'background-color': task.done ? completedColor : '' }">
                                         <p class="lead fw-normal mb-0" v-if="!task.editMode">{{ task.words }}</p>
                                         <div v-else class="d-flex flex-row justify-content-end mb-1">
                                             <input class="form-control form-control-lg" v-model="task.newValue"
@@ -737,13 +732,9 @@
                 }
             },
 
-            taskClass : function(){
-                return this.task.done ? 'completed' : ''
-            }
 
 
-
-
+            
         },
         mounted()
         {
