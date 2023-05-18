@@ -132,7 +132,7 @@
                         <div id="sortable-list">
                             <div class="item" v-for="(task,index) in filterTasks">
                                 <ul class="list-group list-group-horizontal rounded-0 bg-transparent "
-                                    v-bind:class="[{'task-done': task.done}, {'task-cancel': task.cancel}]">
+                                    v-bind:class="[{'task-done': task.done}, {'task-cancel': task.softdelete}]">
 
                                     <li class="list-group-item d-flex align-items-center ps-0 pe-3 py-1 rounded-0 border-0 bg-transparent">
                                         <div class="form-check">
@@ -165,12 +165,12 @@
                                         <div class="d-flex flex-row justify-content-end mb-2">
                                             <a href="#!" class="text-info" data-mdb-toggle="tooltip"
                                                title="Edit todo"
+                                               v-show = "task.softdelete == null"
                                                @click="editTask(index)">
                                                 <i class="fas fa-pencil-alt me-3"></i>
                                             </a>
-                                            <a href="#!" class="text-danger" data-mdb-toggle="tooltip"
-                                               title="Delete todo" 
-                                               v-show = "task.softdelete == null"
+                                            <a href="#!" class="text-info" data-mdb-toggle="tooltip"
+                                               title="Delete todo"                                               
                                                @click.stop="deleteTask(index)">
                                                 <i class="fas fa-trash-alt me-3"></i>
                                             </a>
@@ -256,7 +256,7 @@
                                                            @click="editSubtask(index, subIndex)">
                                                             <i class="fas fa-pencil-alt me-3"></i>
                                                         </a>
-                                                        <a href="#!" class="text-danger" data-mdb-toggle="tooltip"
+                                                        <a href="#!" class="text-info" data-mdb-toggle="tooltip"
                                                            title="Delete todo"
                                                            @click.stop="deleteSubtask(index, subIndex)">
                                                             <i class="fas fa-trash-alt me-3"></i>
@@ -330,7 +330,6 @@
             cancel: false,
             percentageNum: 0,
             subTaskId: 1,
-            subTaskDone: false,
             subTaskCancel: false,
             subtaskInput: 0,
             completedPercentage: 0,
@@ -397,7 +396,6 @@
             } catch (error) {
                 console.error(error);
             }                
-            this.tasks[index].subTaskTxt = '';
             },
             addSubtaskToView(index, subtask) {
                 this.tasks[index].subTasks.push({
@@ -405,7 +403,7 @@
                     id: subtask._id,
                     txt: subtask.description,
                     date: new Date(subtask.date),
-                    done: this.subTaskDone,
+                    subTaskDone: subtask.completed,
                     cancel: this.subTaskCancel,
                     subTaskEditMode: false,
                     subTaskEditedValue: '',
@@ -531,12 +529,9 @@
                 } catch (error) {
                     console.error(error);
                 }
-            },
-          
-          
+            },         
           
             async cancelTask(index) {
-
                 const taskId = this.tasks[index].id;
                 try{
                 await axios.put(`http://localhost:3000/api/task/cancelTask/${taskId}`,
@@ -547,13 +542,28 @@
                             auth_token: my_token
                         }
                     })
-
                 }catch (error) {
                     console.error(error);
                 }
+            },
+            async cancelSubtask(parentIndex, index) {
+                const taskID = this.tasks[parentIndex].id;
+                const subtaskID = this.tasks[parentIndex].subTasks[childIndex].id;
 
-            }
-          ,
+                try{
+                    const response = await axios.put(`http://localhost:3000/api/subtask/cancelTask/${taskId}`,
+                    {
+                        softdelete: Date.now(),
+                    }, {
+                    headers: {
+                        auth_token: my_token
+                    }
+                        })
+                }catch (error) {
+                    console.error(error);
+                }
+            },
+          
             // done
             async checkCompletedTask(index) {
                 const taskId = this.tasks[index].id;
@@ -569,24 +579,24 @@
                             auth_token: my_token
                         }
                     })
-                        .then(() => {
-                            if (isChecked) {
-                                this.completedTasks.push(this.tasks[index]);
-                                this.tasks[index].done = true;
-                                this.tasks[index].completedPercentage = 100;
-                            } else {
-                                const completedIndex = this.completedTasks.findIndex((task) => task._id === taskId);
-                                if (completedIndex !== -1) {
-                                    this.completedTasks.splice(completedIndex, 1);
-                                }
+                    .then(() => {
+                        if (isChecked) {
+                            this.completedTasks.push(this.tasks[index]);
+                            this.tasks[index].done = true;
+                            this.tasks[index].completedPercentage = 100;
+                        } else {
+                            const completedIndex = this.completedTasks.findIndex((task) => task._id === taskId);
+                            if (completedIndex !== -1) {
+                                this.completedTasks.splice(completedIndex, 1);
                             }
-                            this.tasks = [];
-                            this.fetchTasks();
-                            // window.location.reload();
-                        })
-                        .catch((error) => {
-                            console.error(error);
-                        });
+                        }
+                        this.tasks = [];
+                        this.fetchTasks();
+                        // window.location.reload();
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
 
                     // this.updateTasks();
                 } catch (error) {
@@ -594,15 +604,37 @@
                 }
             },
 
-
-            checkCompletedSubTask(parentIndex, childIndex) {
+            async checkCompletedSubTask(parentIndex, childIndex) {
                 isChecked = !this.tasks[parentIndex].subTasks[childIndex].done;
-                if (isChecked) {
-                    this.completedTasks.push(this.tasks[parentIndex].subTasks[childIndex])
-                } else {
-                    this.completedTasks.splice(this.tasks[parentIndex].subTasks[childIndex], 1)
+                const taskID = this.tasks[parentIndex].id;
+                const subtaskID = this.tasks[parentIndex].subTasks[childIndex].id;
+                var complete = ((isChecked) ? '1' : '0');
+                console.log(complete);
 
+                try {
+                    const response = await axios.put(`http://localhost:3000/api/subtask/completedSubTask/${taskID}/${subtaskID}}`,
+                        {
+                        headers: {
+                            auth_token: my_token
+                        }
+                    })
+                    .then(() => {
+                        if (isChecked) {
+                            this.completedTasks.push(this.tasks[parentIndex].subTasks[childIndex])
+                        } else {
+                            this.completedTasks.splice(this.tasks[parentIndex].subTasks[childIndex], 1)
+                        }
+                        this.tasks = [];
+                        this.fetchTasks();
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
+                    console.log(response.data);
+                } catch (error) {
+                    console.error(error);
                 }
+                
             },
             updateTasks() {
                 this.tasks = this.filteredTasks();
