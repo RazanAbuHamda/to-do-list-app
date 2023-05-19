@@ -505,6 +505,7 @@
                     console.log(e.message);
                 })                
             },
+
             async saveEditedTask(index) {
                 try {
                     const taskId = this.tasks[index].id;
@@ -554,8 +555,10 @@
                 isChecked = !this.tasks[parentIndex].subTasks[childIndex].subTaskCancel;
                 const taskID = this.tasks[parentIndex].id;
                 const subtaskID = this.tasks[parentIndex].subTasks[childIndex].id;
+                console.log(`http://localhost:3000/api/subtask/cancel/${taskID}/${subtaskID}`);
 
-                await axios.put(`http://localhost:3000/api/subtask/cancel/${taskID}/${subtaskID}`,
+                try {
+                const response= await axios.put(`http://localhost:3000/api/subtask/cancel/${taskID}/${subtaskID}`,
                 {
                     softdelete: Date.now(),
                 }, {
@@ -563,14 +566,15 @@
                         auth_token: my_token
                     }
                 })
-                .then((response) => {
-                    this.canceledTasks.push(this.tasks[parentIndex].subTasks[childIndex])
-                    this.tasks[parentIndex].subtasks[childIndex].subTaskCancel = true;
-                    window.location.reload();
-                })
-                .catch((e) => {
-                    console.log(e.message);
-                })                
+                this.canceledTasks.push(this.tasks[parentIndex].subTasks[childIndex])
+                this.tasks[parentIndex].subtasks[childIndex].subTaskCancel = true;
+                console.log(response.data);
+
+                window.location.reload();
+            }catch(e){
+                console.log(e.message);
+            }
+                             
             },
           
             // done

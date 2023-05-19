@@ -117,7 +117,7 @@ module.exports.subTaskCompleted = async (req, res) => {
     const subtaskid = req.params.subtaskid
     const subTask = req.body
     const task = await Task.findById(taskid)
-    const subtask = task.subtasks.filter(subtask => subtask._id == subtaskid)
+    const subtask = await task.subtasks.filter(subtask => subtask._id == subtaskid)
     console.log(subtask)
 
     subtask[0].completed = true
@@ -144,23 +144,21 @@ module.exports.subTaskCompleted = async (req, res) => {
 
 
 module.exports.subtaskCancel = async(req,res)=>{
-try{
-    const taskid = req.params.taskid
-    const subtaskid = req.params.subtaskid
-    const task = Task.findById(taskid)
-    const subtask = await task.subtasks.filter(subtask => subtask._id == subtaskid) //return array of one object
-
-    //console.log(subtask)
-    // subtask.status = "cancelled"
-
-    subtask.softdelete= Date.now()
-
-    task.save()
-
-   res.status(200).json(subtask)
-} catch (error) {
-  console.log(error.message)
-  res.status(500).json({ message: error.message })
-}
-}
-
+  try{
+      const taskid = req.params.taskid
+      const subtaskid = req.params.subtaskid
+      const task =await Task.findById(taskid)
+      const subtask = await task.subtasks.filter(subtask => subtask._id == subtaskid) //return array of one object
+  
+      console.log(subtask.completed)
+      subtask[0].softdelete= Date.now()
+      console.log(subtask)
+  
+      task.save()
+  
+     res.status(200).json(subtask)
+  } catch (error) {
+    console.log(error.message)
+    res.status(500).json({ message: error.message })
+  }
+  }
