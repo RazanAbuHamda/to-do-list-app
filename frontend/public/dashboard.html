@@ -169,13 +169,14 @@
                                                 <i class="fas fa-pencil-alt me-3"></i>
                                             </a>
                                             <a href="#!" class="text-info" data-mdb-toggle="tooltip"
-                                               title="Delete todo"                                               
+                                               title="Delete todo"
                                                @click.stop="deleteTask(index)">
                                                 <i class="fas fa-trash-alt me-3"></i>
                                             </a>
 
                                             <a href="#!" class="text-danger" data-mdb-toggle="tooltip"
                                                 title="cancel todo"
+                                                v-show =  "task.softdelete == null"
                                                 @click.stop="cancelTask(index)">
                                                 <i class="fas fa-times me-3"></i>
                                             </a>                          
@@ -196,10 +197,11 @@
                                     <div class="ml-3">
                                         <input
                                                 type="text"
+                                                v-show =  "task.softdelete == null"                                               
                                                 style="height: 40px; width: 300px; border: none; border-radius: 4px; margin-right: 10px;"
                                                 v-model="task.subTaskTxt"
                                         />
-                                        <button type="button" style="height: 35px;" class="btn btn-info h-25"
+                                        <button  type="button"  v-show ="task.softdelete == null" style="height: 35px;" class="btn btn-info h-25"
                                                 :disabled="!task.subTaskTxt" @click.prevent="addSubtask(index)">
                                             Add a Subtask
                                         </button>
