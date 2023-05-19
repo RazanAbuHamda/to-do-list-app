@@ -47,6 +47,10 @@
         background-color: #fe3939 !important;
     }
 
+    .subtask-cancel {
+        background-color: #fe3939 !important;
+    }
+
 </style>
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -328,7 +332,6 @@
             cancel: false,
             percentageNum: 0,
             subTaskId: 1,
-            subTaskCancel: false,
             subtaskInput: 0,
             completedPercentage: 0,
             completedColor: "green",
@@ -378,7 +381,7 @@
             },
 
             //done 
-            async addSubtask(index) {
+            addSubtask(index) {
                 const subtastxt = this.tasks[index].subTaskTxt;
                 const taskID = this.tasks[index].id;
                 console.log(taskID);
@@ -457,13 +460,13 @@
             },
 
            //done
-           async deleteSubtask(index, subindex) {
+           deleteSubtask(index, subindex) {
                 
             const taskId = this.tasks[index].id;
             const subtaskID = this.tasks[index].subTasks[subindex].id
             console.log(`http://localhost:3000/api/subtask/delete/${taskId}/${subtaskID}`);
 
-            await axios.delete(`http://localhost:3000/api/subtask/delete/${taskId}/${subtaskID}`, {                        
+            axios.delete(`http://localhost:3000/api/subtask/delete/${taskId}/${subtaskID}`, {                        
                 headers: {
                     auth_token: my_token
                 }
@@ -486,12 +489,12 @@
             },
 
             //modified
-            async saveEditedSubtask(parentIndex, childIndex) {
+            saveEditedSubtask(parentIndex, childIndex) {
                 const updatedSubTask = this.tasks[parentIndex].subTasks[childIndex].subTaskEditedValue;
                 const taskID = this.tasks[parentIndex].id;
                 const subtaskID = this.tasks[parentIndex].subTasks[childIndex].id;
 
-                await axios.put(`http://localhost:3000/api/subtask/update/${taskID}/${subtaskID}`,
+                axios.put(`http://localhost:3000/api/subtask/update/${taskID}/${subtaskID}`,
                 {
                     description: updatedSubTask
                 },{
@@ -546,6 +549,7 @@
                     })
                     this.tasks[index].cancel = true;
                     this.canceledTasks.push(this.tasks[index]);
+                    window.location.reload();
 
                 }catch (error) {
                     console.error(error);
@@ -553,14 +557,14 @@
                 window.location.reload();
             },
 
-            async cancelSubtask(parentIndex, childIndex) {
+            cancelSubtask(parentIndex, childIndex) {
                 isChecked = !this.tasks[parentIndex].subTasks[childIndex].subTaskCancel;
                 const taskID = this.tasks[parentIndex].id;
                 const subtaskID = this.tasks[parentIndex].subTasks[childIndex].id;
                 console.log(`http://localhost:3000/api/subtask/cancel/${taskID}/${subtaskID}`);
 
-                try {
-                const response= await axios.put(`http://localhost:3000/api/subtask/cancel/${taskID}/${subtaskID}`,
+                
+                const response= axios.put(`http://localhost:3000/api/subtask/cancel/${taskID}/${subtaskID}`,
                 {
                     softdelete: Date.now(),
                 }, {
@@ -568,14 +572,15 @@
                         auth_token: my_token
                     }
                 })
-                this.canceledTasks.push(this.tasks[parentIndex].subTasks[childIndex])
-                this.tasks[parentIndex].subtasks[childIndex].subTaskCancel = true;
-                console.log(response.data);
-
-                window.location.reload();
-            }catch(e){
-                console.log(e.message);
-            }
+                .then((response) => {
+                    this.canceledTasks.push(this.tasks[parentIndex].subTasks[childIndex])
+                    this.tasks[parentIndex].subTasks[childIndex].subTaskCancel = true;
+                    console.log(response.data);
+                    window.location.reload();
+                })   
+                .catch((e) => {
+                    console.log(e);
+                })                        
                              
             },
           
@@ -619,8 +624,8 @@
                 }
             },
 
-            async checkCompletedSubTask(parentIndex, childIndex) {
-                isChecked = !this.tasks[parentIndex].subTasks[childIndex].done;
+            checkCompletedSubTask(parentIndex, childIndex) {
+                isChecked = !this.tasks[parentIndex].subTasks[childIndex].subTaskCancel;
                 const taskID = this.tasks[parentIndex].id;
                 const subtaskID = this.tasks[parentIndex].subTasks[childIndex].id;
                 var complete = ((isChecked) ? '1' : '0');
@@ -635,12 +640,14 @@
                         }
                     })
                     .then((response) => {                        
-                        this.completedTasks.push(this.tasks[parentIndex].subTasks[childIndex])
+                        this.tasks[parentIndex].subTasks[childIndex].subTaskCancel = true;
+                        this.canceledTasks.push(this.tasks[parentIndex].subTasks[childIndex]);
+                        console.log(response.data);  
                         window.location.reload();
-                        console.log(response.data);                
+              
                     })
                     .catch((e) => {
-                        console.log(e.message);
+                        console.log(e);
                     })    
             },
 

@@ -29,6 +29,11 @@ const subtaskSchema = mongoose.Schema({
     type: Date,
     default: null
   },
+  date : {
+    type : Date ,
+    default : new Date()
+    
+  }
   // status: {
   //   type: String,
   //   default: "active"
