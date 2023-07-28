@@ -2,11 +2,6 @@ const router=require('express').Router()
 const TaskController=require("../controllers/taskController")
 const subTaskController=require("../controllers/subtaskController")
 
-
-// router.get('/test',verify,(req,res)=>{
-//     res.json(req.user)
-// })
-
 router.post('/store',TaskController.insertNewTask)
 
 router.get('/tasks',TaskController.showAll)
@@ -19,11 +14,11 @@ router.delete('/delete/:id',TaskController.deleteByID)
 
 router.put('/cancelTask/:id',TaskController.cancelTask) //cancel task
 
-router.put('/completedAllTasks/:taskid',TaskController.comletedtask) //complete task and all its subtasks
+router.put('/checkAllTasks/:taskid',TaskController.checktask) //complete task and all its subtasks
 
-// router.get('/taskCompletionPercentage/:id',TaskController.calculateTaskCompletionPercentage)
+router.get('/currentDayCompletion',TaskController.calcCurrentDayCompletion)
 
-router.get('/completionPerDay/',TaskController.calculateCompletionPercentagePerDay)
+// router.get('/completionPerDay/',TaskController.calculateCompletionPercentagePerDay)
 
 
 module.exports=router

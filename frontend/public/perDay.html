@@ -57,12 +57,12 @@
 <script>
     async function fetchData() {
         try {
-            const response = await axios.get('http://localhost:3000/api/task/completionPerDay', {
+            const response = await axios.get('http://localhost:3000/api/task/currentDayCompletion', {
                 headers: {
                     auth_token: my_token
                 },
             });
-            const averageCompletionRate = response.data.averageCompletionRatesPerDay[0].averageCompletionRate;
+            const averageCompletionRate = response.data.currentDay;
 
             const ctx = document.getElementById('myChart');
             new Chart(ctx, {

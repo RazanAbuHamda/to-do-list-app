@@ -4,7 +4,7 @@ const joi=require("@hapi/joi")
 //register validation
 const registerValidation=(data)=>{
 const schema=joi.object({
-    name: joi.string().min(6).required(),
+    name: joi.string().required().min(6),
     email:joi.string().min(6).required().email(),
     //password length between 6 to 20 characters, at least one numeric digit, one uppercase and one lowercase letter
     password: joi

@@ -110,7 +110,7 @@
                         <hr class="my-4">
 
                         <div class="d-flex justify-content-end align-items-center mb-4 pt-2 pb-3">
-                            <p class="small mb-0 me-2 text-muted">Check the Tasks Completed Per Day</p>
+                            <p class="small mb-0 me-2 text-muted">Achievement for the current day</p>
                             <a href="perDay.html" class="text-success me-4 mb-0" data-mdb-toggle="tooltip"
                                title="CheckTasks">
                                 <i class="fas fa-chart-pie"></i>
@@ -142,21 +142,22 @@
                                             <input
                                                     class="form-check-input me-0"
                                                     type="checkbox"
-                                                    value=""
+                                                    value="0"
                                                     id="flexCheckChecked1"
                                                     aria-label="..."
                                                     v-model="task.done"
                                                     v-bind:id="task.id"
                                                     v-on:input="checkCompletedTask(index)"
+                                                    ref="myCheckbox"
                                             />
                                         </div>
                                     </li>
                                     <li class="list-group-item px-3 py-1 d-flex align-items-center flex-grow-1 border-0 bg-transparent"
                                        v-bind:style="{ 'background-color': task.completedPercentage === 100 ? completedColor : '' }">
-                                    <p class="lead fw-normal mb-0" v-if="!task.editMode"  v-if = "!isPastDue(index)">{{ task.words }}</p>
+                                    <p class="lead fw-normal mb-0" v-if="!task.editMode"  v-if = "!isPastDue(index)">{{ task.description }}</p>
                                         <div v-else class="d-flex flex-row justify-content-end mb-1">
                                             <input class="form-control form-control-lg" v-model="task.newValue"
-                                                   :placeholder="task.words"/>
+                                                   :placeholder="task.description"/>
                                             <button type="button" class="btn btn-primary" id="save-edited-task"
                                                     style="margin: left 10px;"
                                                     :disabled="!task.newValue" @click="saveEditedTask(index)">Save
@@ -189,7 +190,7 @@
                                             <a href="#!" class="text-muted" data-mdb-toggle="tooltip"
                                                title="Created date">
                                                 <p class="small mb-0"><i class="fas fa-info-circle me-2"></i>{{
-                                                        new Date(task.date)
+                                                        new Date(task.createdAt)
                                                     }}
                                                 </p>
                                             </a>
@@ -239,13 +240,13 @@
                                                     v-bind:style="{ 'background-color': task.subTasks[subIndex].subTaskDone ? completedColor : '' }">
                                                     <p class="lead fw-normal mb-0"
                                                        v-if="!task.subTasks[subIndex].subTaskEditMode">
-                                                        {{ task.subTasks[subIndex].txt }}</p>
+                                                        {{ task.subTasks[subIndex].description }}</p>
                                                     <div v-else>
                                                         <input
                                                                 type="text"
                                                                 style="height: 40px; width: 300px; border: none; border-radius: 4px; margin-right: 10px;"
                                                                 v-model="task.subTasks[subIndex].subTaskEditedValue"
-                                                                :placeholder="task.subTasks[subIndex].txt"
+                                                                :placeholder="task.subTasks[subIndex].description"
                                                         />
                                                         <button type="button" class="btn btn-primary"
                                                                 id="save-edited-subtask"
@@ -315,6 +316,8 @@
 
 
 </script>
+
+
 <script type="text/javascript">
     var vm = new Vue({
         el: "#to-do-list",
@@ -364,11 +367,11 @@
                 this.tasks.push({
                     id: task._id,
                     user_id: task.user_id,
-                    words: task.description,
+                    description: task.description,
                     done: ((task.completionPercentage == 100) ? true : false),
                     newValue: '',
                     cancel: task.cancel,
-                    date: task.createdAt, //date store in DB
+                    createdAt: task.createdAt, //date store in DB
                     editMode: this.editMode,
                     reminder: new Date(+new Date().setHours(0, 0, 0, 0) + 86400000).toLocaleDateString('fr-CA'),
                     subTasks: [],
@@ -403,17 +406,26 @@
             },
 
             addSubtaskToView(index, subtask) {
+                console.log(subtask)
+                // if(status == 1)
+                //   subtask['completed']=1;
+                //   console.log( subtask.completed)
+                // if(status == -1)
+                //   subtask['softdelete']=new Date();
+                  console.log( subtask.softdelete)
                 this.tasks[index].subTasks.push({
                     parentId: index,
                     id: subtask._id,
-                    txt: subtask.description,
+                    description: subtask.description,
                     date: new Date(subtask.date),
-                    subTaskDone: subtask.completed,
-                    subTaskCancel: subtask.softdelete,
+                    subTaskDone: subtask.status==1 ? 1:0,
+                    subTaskCancel: subtask.status==-1 ? new Date():null,
                     subTaskEditMode: false,
                     subTaskEditedValue: '',
             });
                 this.subTaskId++;
+
+                console.log(this.tasks[index])
             },
             
             async fetchTasks() {
@@ -430,9 +442,14 @@
 
                     tasks.forEach((task) => {
                         this.addToView(task); // Add 'this' to call the method
+                        if(task.status == 1 ){
+                            this.completedTasks.push(task)
+                        }
+                        console.log(this.completedTasks);
                         const subtasks = task.subtasks;
                         // console.log("pindex", parentIndex, "subtasks", subtasks);
                         subtasks.forEach((subtask) => {    
+                            console.log(subtasks)
                             this.addSubtaskToView(parentIndex, subtask); // Add 'this' to call the method
                             // console.log("index", parentIndex,"api subtask",subtask);                            
                         });
@@ -524,7 +541,7 @@
                         }
                     })
                         .then(() => {
-                            this.tasks[index].words = updatedDescription;
+                            this.tasks[index].description = updatedDescription;
                             this.editTask(index);
                             window.location.reload();
                         })
@@ -558,6 +575,9 @@
             },
 
             cancelSubtask(parentIndex, childIndex) {
+
+                // this.$refs.myCheckbox.disabled = true;
+
                 isChecked = !this.tasks[parentIndex].subTasks[childIndex].subTaskCancel;
                 const taskID = this.tasks[parentIndex].id;
                 const subtaskID = this.tasks[parentIndex].subTasks[childIndex].id;
@@ -586,13 +606,14 @@
           
             // done
             async checkCompletedTask(index) {
+                console.log(event.target.checked)
                 const taskId = this.tasks[index].id;
                 const isChecked = this.tasks[index].done;
-
                 try {
-                    await axios.put(`http://localhost:3000/api/task/completedAllTasks/${taskId}`,
+                    await axios.put(`http://localhost:3000/api/task/checkAllTasks/${taskId}`,
                         {
                             done: isChecked,
+                            checkbox:event.target.checked,
                             completedPercentage:100,
                         }, {
                         headers: {
@@ -634,6 +655,7 @@
                 axios.put(`http://localhost:3000/api/subtask/completedSubTask/${taskID}/${subtaskID}`,
                     {
                         completed: complete,
+                        checkbox:event.target.checked
                     }, {
                         headers: {
                             auth_token: my_token
@@ -656,7 +678,7 @@
             },
 
             sortTasks() {
-                this.tasks = this.filteredTasks();
+                this.tasks = this.filterTasks;
             },
 
             sortAccordingToAddedDate() {
@@ -666,9 +688,15 @@
             },
 
             sortAccordingToCompletedDate() {
-                return this.completedTasks.sort(
+                this.completedTasks.sort(
                     (taskA, taskB) => Number(taskA.completionDate) - Number(taskB.completionDate),
                 );
+                console.log(this.tasks);
+                // this.completedTasks.forEach((task) => {    
+                //     this.addToView(task); // Add 'this' to call the method
+                //     // console.log("index", parentIndex,"api subtask",subtask);                            
+                // });
+                return this.completedTasks;
             },
 
             async logout() {
@@ -693,6 +721,7 @@
         computed: {
             filterTasks: function () {
                 if (this.selectedFilter !== '') {
+                    console.log("inside filter");
                     switch (this.selectedFilter) {
                         case "1":
                             return this.tasks;
@@ -706,10 +735,13 @@
                             return this.tasks;
                     }
                 } else {
+                    console.log("inside sort");
                     switch (this.selectedSorting) {
                         case "1":
+                            console.log("date sprt");
                             return this.sortAccordingToAddedDate();
                         case "2":
+                            console.log("complete sprt");
                             return this.sortAccordingToCompletedDate();
                         default:
                             return this.tasks;
@@ -847,5 +879,13 @@
 
 
 </script>
+
+<script type="text/javascript">
+    function handleCheckboxClick() {
+        var checkbox = document.getElementById("flexCheckChecked1");
+        checkbox.checked = !checkbox.checked;
+        console.log( checkbox );
+      }
+    </script>
 </body>
 </html>

@@ -1,43 +1,28 @@
 const mongoose = require("mongoose");
-//const calculation = require("../")
 
 const subtaskSchema = mongoose.Schema({
-  // subtaskId: { type: Number, required: true },
+
   description: {
     type: String,
     required: true,
   },
-  completed: {
-    type: Number,
-    validate: {
-      validator: function (v) {
-        return v == 0 || v == 1;
-      },
-      message: 'Value must be either 0 or 1'
-    },
-    default: 0
-  },
 
-
-  editMode : {
-    type : Boolean,
-    default : false
-  } ,
-
-  completionDate: { type: Date, default: null },
-  softdelete: {
-    type: Date,
-    default: null
-  },
   date : {
     type : Date ,
     default : new Date()
     
+  },
+  
+  status: {
+    type: Number,
+    validate: {
+      validator: function (v) {
+        return v == 0 || v == 1 || v == -1; //0 active 1 completed //-1 canceled
+      },
+      message: 'Value must be either 0 or 1 or -1'
+    },
+    default: 0
   }
-  // status: {
-  //   type: String,
-  //   default: "active"
-  // }
 
 
 })
@@ -55,19 +40,15 @@ const TaskSchema = mongoose.Schema(
     },
     completionPercentage: {
       type: Number,
-      default: false
+      default: 0
     },
     completionDate: { type: Date, default: null },
     subtasks: [subtaskSchema],
+
     softdelete: {
       type: Date,
       default: null
     },
-
-    // status: {
-    //   type: String,
-    //   default: "active"
-    // }
 
   },
   {
@@ -79,3 +60,29 @@ const TaskSchema = mongoose.Schema(
 
 const Task = mongoose.model("Task", TaskSchema);
 module.exports = Task;
+
+
+
+  // completed: {
+  //   type: Number,
+  //   validate: {
+  //     validator: function (v) {
+  //       return v == 0 || v == 1;
+  //     },
+  //     message: 'Value must be either 0 or 1'
+  //   },
+  //   default: 0
+  // },
+
+
+  // editMode : {
+  //   type : Boolean,
+  //   default : false
+  // },
+
+  // completionDate: { type: Date, default: null },
+
+  // softdelete: {
+  //   type: Date,
+  //   default: null
+  // },
